@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agam Makhija | Game Designer Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕷️</text></svg>">
+</head>
+<body>
+
+  <!-- ==========================================
+       MARVEL / COMIC CODE HEADER BAR
+       ========================================== -->
+  <header class="comic-issue-bar">
+    <div class="issue-badge-group">
+      <div class="comics-code-badge">
+        APPROVED<br>BY THE<br>COMICS CODE<br>AUTHORITY
+      </div>
+      <div class="issue-edition-text">
+        <strong>THE SPECTACULAR PORTFOLIO</strong> • VOL. 1 • ISSUE #01
+      </div>
+    </div>
+    <div class="issue-controls">
+      <button class="sound-toggle-btn" id="sound-toggle" title="Toggle Comic Sound Effects">
+        <span>🔊</span> SFX: ON
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       COMIC BOOK NAVIGATION
+       ========================================== -->
+  <nav class="comic-navbar">
+    <div class="nav-brand">
+      <div class="brand-icon-box">AM</div>
+      <div class="brand-title-wrap">
+        <span class="brand-name">AGAM MAKHIJA</span>
+        <span class="brand-tag">GAME DESIGNER & SYSTEMS ARCHITECT</span>
+      </div>
+    </div>
+
+    <ul class="nav-links">
+      <li class="nav-item active">
+        <button data-target="home" data-title="Cover Issue">
+          <span>COVER</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button data-target="skills" data-title="Skills">
+          <span>SKILLS</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button data-target="projects" data-title="Game Vault">
+          <span>PROJECTS</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button data-target="about" data-title="Origin Story">
+          <span>ORIGIN</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button data-target="contact" data-title="Hero Signal">
+          <span>CONTACT</span>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ==========================================
+       MAIN VIEWPORT CONTENT
+       ========================================== -->
+  <main class="main-wrapper">
+
+    <!-- ==========================================
+         SECTION 1: HOME / COVER ISSUE
+         ========================================== -->
+    <section id="section-home" class="portfolio-section active-section">
+      <div class="hero-comic-cover">
+        
+        <div class="cover-header-meta">
+          <div class="cover-tagline-box">
+            ★ ALL-NEW, ALL-DIFFERENT INTERACTIVE PORTFOLIO ★
+          </div>
+          <div class="cover-price-badge">ONLY 25¢</div>
+        </div>
+
+        <!-- The User's Name and Big Game Designer Text -->
+        <div class="hero-title-area">
+          <div class="name-banner">AGAM MAKHIJA</div>
+          <h1 class="big-role-text">GAME DESIGNER</h1>
+          <div class="hero-subtitle-strip">
+            AI SYSTEMS • PYTHON ARCHITECTURE • IMMERSIVE MECHANICS
+          </div>
+        </div>
+
+        <!-- Hero Comic Panels Grid -->
+        <div class="hero-panels-grid">
+          
+          <!-- Left Main Dialogue Panel -->
+          <div class="comic-panel">
+            <div class="comic-speech-bubble">
+              "With great design comes great gameplay! Watch Spidey hanging on the web and sliding down as you scroll, or click any tab to watch him flip into action!"
+            </div>
+
+            <p class="hero-bio-lead">
+              Welcome, True Believer! I am <strong>Agam Makhija</strong>, a game designer specializing in <strong>AI-driven behaviors</strong>, <strong>Python system prototyping</strong>, tactile mechanics, and deep player agency. From crafting behavioral trees and algorithmic balancing models to tuning real-time grapple physics, I design for feel, intellect, and pure interactive thrill.
+            </p>
+
+            <div class="hero-stats-row">
+              <div class="stat-comic-card">
+                <span class="stat-num">AI + PY</span>
+                <span class="stat-lbl">CORE ARSENAL</span>
+              </div>
+              <div class="stat-comic-card">
+                <span class="stat-num">4+</span>
+                <span class="stat-lbl">SHIPPED GAMES & PROTOTYPES</span>
+              </div>
+              <div class="stat-comic-card">
+                <span class="stat-num">100%</span>
+                <span class="stat-lbl">PLAYER-FIRST FOCUS</span>
+              </div>
+            </div>
+
+            <div class="hero-action-buttons">
+              <button class="btn-comic-primary" data-cta-target="skills" data-cta-title="Skills">
+                <span>🧠 EXPLORE SKILLS (AI & PYTHON)</span>
+              </button>
+              <button class="btn-comic-secondary" data-cta-target="projects" data-cta-title="Game Vault">
+                <span>⚡ VIEW GAME VAULT</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Spotlight Panel -->
+          <div class="comic-panel" style="background: var(--comic-yellow-light);">
+            <div class="panel-headline">SPECIAL FOCUS DIRECTORY</div>
+            <div class="focus-pills-list">
+              
+              <div class="focus-pill-item">
+                <div class="pill-icon">🧠</div>
+                <div>
+                  <div class="pill-title">ARTIFICIAL INTELLIGENCE (AI)</div>
+                  <div class="pill-desc">NPC Behavior Trees, LLM procedural dialogue, GOAP, and adaptive enemy intent.</div>
+                </div>
+              </div>
+
+              <div class="focus-pill-item">
+                <div class="pill-icon">🐍</div>
+                <div>
+                  <div class="pill-title">PYTHON FOR GAME DESIGN</div>
+                  <div class="pill-desc">Rapid mechanics prototyping, Monte Carlo economy balancing, and automation pipelines.</div>
+                </div>
+              </div>
+
+              <div class="focus-pill-item">
+                <div class="pill-icon">🕹️</div>
+                <div>
+                  <div class="pill-title">SYSTEMS & MECHANICS DESIGN</div>
+                  <div class="pill-desc">Core loops, player kinetic movement, and dynamic response curves.</div>
+                </div>
+              </div>
+
+              <div class="focus-pill-item">
+                <div class="pill-icon">📐</div>
+                <div>
+                  <div class="pill-title">LEVEL DESIGN & ARCHITECTURE</div>
+                  <div class="pill-desc">Sightlines, breadcrumb lighting, spatial pacing, and greybox layouts.</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 2: SKILLS PAGE (FEATURING AI & PYTHON)
+         ========================================== -->
+    <section id="section-skills" class="portfolio-section">
+      <div class="section-comic-header">
+        <div class="section-badge-top">TECHNICAL CLASSIFICATION</div>
+        <h2 class="section-main-title">SKILLS & SUPERPOWERS</h2>
+        <p class="section-desc-caption">
+          Specialized expertise spanning modern <strong>Artificial Intelligence (AI)</strong>, <strong>Python</strong> gameplay modeling, combat mechanics, and industry game engines.
+        </p>
+      </div>
+
+      <!-- Highlight Banner for AI & Python -->
+      <div class="skills-spotlight-row">
+        
+        <!-- AI Card -->
+        <div class="skill-spotlight-card ai-spotlight">
+          <div class="spotlight-badge">★ CORE FOCUS</div>
+          <div class="spotlight-icon">🧠</div>
+          <h3 class="spotlight-title">ARTIFICIAL INTELLIGENCE</h3>
+          <p class="spotlight-summary">
+            Architecting intelligent, readable, and believable agents that challenge players without feeling cheap or unfair.
+          </p>
+          <div class="spotlight-tags">
+            <span class="spotlight-tag">Behavior Trees</span>
+            <span class="spotlight-tag">LLM & Generative NPCs</span>
+            <span class="spotlight-tag">GOAP & Utility AI</span>
+            <span class="spotlight-tag">NavMesh & A* Pathfinding</span>
+            <span class="spotlight-tag">Reinforcement Learning</span>
+          </div>
+          <div class="spotlight-metric">
+            <div class="spotlight-metric-label">MASTERY RATING</div>
+            <div class="stat-track">
+              <div class="stat-fill" data-width="96%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Python Card -->
+        <div class="skill-spotlight-card python-spotlight">
+          <div class="spotlight-badge" style="background: var(--comic-blue);">★ CORE FOCUS</div>
+          <div class="spotlight-icon">🐍</div>
+          <h3 class="spotlight-title">PYTHON FOR GAME DESIGN</h3>
+          <p class="spotlight-summary">
+            The ultimate rapid weapon for prototyping algorithms, Monte Carlo game economy balancing, and automation pipelines.
+          </p>
+          <div class="spotlight-tags">
+            <span class="spotlight-tag">Rapid Mechanics Prototyping</span>
+            <span class="spotlight-tag">Economy Simulation (Monte Carlo)</span>
+            <span class="spotlight-tag">Data Analysis & Tuning Sheets</span>
+            <span class="spotlight-tag">Pygame / Arcade</span>
+            <span class="spotlight-tag">Tooling & Level Exporters</span>
+          </div>
+          <div class="spotlight-metric">
+            <div class="spotlight-metric-label">MASTERY RATING</div>
+            <div class="stat-track">
+              <div class="stat-fill" data-width="95%"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Skills Details Grid -->
+      <div class="skills-deck-grid" style="margin-top: 30px;">
+        
+        <!-- Left: Attribute Power Meters -->
+        <div class="comic-stat-sheet">
+          <div class="sheet-badge">DESIGN ATTRIBUTES GRID</div>
+          
+          <div class="stat-bars-container">
+            <div class="stat-bar-item">
+              <div class="stat-meta">
+                <span>ARTIFICIAL INTELLIGENCE & NPC BEHAVIORS</span>
+                <span>96 / 100</span>
+              </div>
+              <div class="stat-track">
+                <div class="stat-fill" data-width="96%"></div>
+              </div>
+            </div>
+
+            <div class="stat-bar-item">
+              <div class="stat-meta">
+                <span>PYTHON SCRIPTING & PROTOTYPING</span>
+                <span>95 / 100</span>
+              </div>
+              <div class="stat-track">
+                <div class="stat-fill" data-width="95%"></div>
+              </div>
+            </div>
+
+            <div class="stat-bar-item">
+              <div class="stat-meta">
+                <span>COMBAT & MECHANICS ARCHITECTURE</span>
+                <span>98 / 100</span>
+              </div>
+              <div class="stat-track">
+                <div class="stat-fill" data-width="98%"></div>
+              </div>
+            </div>
+
+            <div class="stat-bar-item">
+              <div class="stat-meta">
+                <span>LEVEL DESIGN & SPATIAL PACING</span>
+                <span>94 / 100</span>
+              </div>
+              <div class="stat-track">
+                <div class="stat-fill" data-width="94%"></div>
+              </div>
+            </div>
+
+            <div class="stat-bar-item">
+              <div class="stat-meta">
+                <span>GAME BALANCING & MATHEMATICAL MODELS</span>
+                <span>92 / 100</span>
+              </div>
+              <div class="stat-track">
+                <div class="stat-fill" data-width="92%"></div>
+              </div>
+            </div>
+
+            <div class="stat-bar-item">
+              <div class="stat-meta">
+                <span>RAPID PROTOTYPING (UNITY / C# / UNREAL)</span>
+                <span>95 / 100</span>
+              </div>
+              <div class="stat-track">
+                <div class="stat-fill" data-width="95%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Interactive Live Simulator Card (AI & Python) -->
+        <div class="comic-stat-sheet" style="background: var(--comic-yellow-light);">
+          <div class="sheet-badge" style="background: var(--comic-ink); color: var(--comic-yellow);">
+            ⚡ INTERACTIVE AI & PYTHON DEMO
+          </div>
+          
+          <p style="font-size: 15px; font-weight: 700; margin-bottom: 12px;">
+            Test real-time game design algorithms created with Python & AI logic:
+          </p>
+
+          <!-- Interactive Simulator Box -->
+          <div class="comic-simulator-box">
+            <div class="sim-tabs">
+              <button class="sim-tab-btn active" id="sim-tab-ai">🧠 AI BEHAVIOR TREE</button>
+              <button class="sim-tab-btn" id="sim-tab-py">🐍 PYTHON COMBAT CURVE</button>
+            </div>
+
+            <!-- AI Behavior Tree Screen -->
+            <div class="sim-screen" id="sim-screen-ai">
+              <div class="sim-header">AGENT STATE: <span id="ai-agent-state" style="color: var(--comic-yellow);">PATROLLING</span></div>
+              <div class="sim-log" id="ai-sim-log">
+                [AI-NODE]: Root Selector initialized.<br>
+                [AI-NODE]: Distance to player: 24m. Within safe perimeter.<br>
+                [AI-NODE]: Action -> Execute Waypoint Patrol.
+              </div>
+              <div class="sim-controls">
+                <button class="sim-action-btn" id="btn-trigger-threat">🚨 SPAWN THREAT</button>
+                <button class="sim-action-btn" id="btn-reset-ai">🔄 RESET TREE</button>
+              </div>
+            </div>
+
+            <!-- Python Curve Screen -->
+            <div class="sim-screen hidden" id="sim-screen-py">
+              <div class="sim-header">PYTHON MATH SCRIPT: <span style="color: #64FFDA;">Damage Curve Formula</span></div>
+              <div class="sim-log" id="py-sim-log">
+                def calculate_damage(atk, defense, crit=0.25):<br>
+                &nbsp;&nbsp;mitigation = 1.0 - (defense / (defense + 100))<br>
+                &nbsp;&nbsp;return round(atk * mitigation * (1.75 if random() &lt; crit else 1.0))
+              </div>
+              <div class="sim-controls">
+                <button class="sim-action-btn" id="btn-run-py-sim">▶ RUN 5-HIT SIMULATION</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tools Arsenal -->
+          <div class="tools-grid-box" style="margin-top: 20px;">
+            <div class="tool-badge-item">🧠 Game AI</div>
+            <div class="tool-badge-item">🐍 Python 3</div>
+            <div class="tool-badge-item">🎮 Unity 3D</div>
+            <div class="tool-badge-item">⚡ Unreal 5</div>
+            <div class="tool-badge-item">💻 C# / C++</div>
+            <div class="tool-badge-item">📊 Pandas / Numpy</div>
+            <div class="tool-badge-item">📐 Level Blockout</div>
+            <div class="tool-badge-item">🎨 Figma UI</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 3: PROJECTS (GAME VAULT)
+         ========================================== -->
+    <section id="section-projects" class="portfolio-section">
+      <div class="section-comic-header">
+        <div class="section-badge-top">ARCHIVES OF ADVENTURE</div>
+        <h2 class="section-main-title">THE GAME VAULT</h2>
+        <p class="section-desc-caption">
+          Explore shipped titles, experimental prototypes, and comprehensive Game Design Documents (GDD). Each project details core mechanics, design decisions, and player loop blueprints.
+        </p>
+
+        <!-- Project Filter Buttons -->
+        <div class="project-filters">
+          <button class="filter-btn active" data-filter="all">★ ALL TITLES</button>
+          <button class="filter-btn" data-filter="systems">⚡ SYSTEMS & ECONOMY</button>
+          <button class="filter-btn" data-filter="level">📐 LEVEL ARCHITECTURE</button>
+          <button class="filter-btn" data-filter="combat">🥊 COMBAT & PHYSICS</button>
+        </div>
+      </div>
+
+      <!-- Rendered Cards Grid -->
+      <div class="projects-comic-grid" id="projects-container">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 4: ORIGIN STORY (ABOUT ME)
+         ========================================== -->
+    <section id="section-about" class="portfolio-section">
+      <div class="section-comic-header">
+        <div class="section-badge-top">BIOGRAPHICAL CHRONICLE</div>
+        <h2 class="section-main-title">THE ORIGIN STORY</h2>
+        <p class="section-desc-caption">
+          How Agam was bitten by the interactive bug, transforming an obsession with mechanics, AI, and code into crafting memorable games.
+        </p>
+      </div>
+
+      <div class="origin-strip-grid">
+        
+        <!-- Panel 1 -->
+        <article class="origin-panel">
+          <div class="panel-issue-number">PANEL 1</div>
+          <h3 class="origin-panel-title">THE SPARK OF CURIOSITY</h3>
+          <p class="origin-panel-body">
+            While other kids simply beat levels, young Agam was obsessed with what happened beneath the pixels. Why did Mario's jump feel floaty yet precise? What made an enemy telegraph intuitive? Deconstructing arcade games and retro platformers turned into a lifelong obsession with the invisible architecture of games.
+          </p>
+          <div class="origin-panel-caption">
+            "Every great game is an invisible conversation between designer and player."
+          </div>
+        </article>
+
+        <!-- Panel 2 -->
+        <article class="origin-panel">
+          <div class="panel-issue-number">PANEL 2</div>
+          <h3 class="origin-panel-title">THE POWER OF CODE & PYTHON</h3>
+          <p class="origin-panel-body">
+            Writing Python scripts to simulate combat balancing and architecting the first AI state machines was a turning point. Learning to fail fast, dissect player frustration, and test atomic mechanics within 24 hours became a superpower — discovering that feel is forged through rapid iteration.
+          </p>
+          <div class="origin-panel-caption">
+            "Prototypes taught me that feel is discovered with fingers on buttons, not theory."
+          </div>
+        </article>
+
+        <!-- Panel 3 -->
+        <article class="origin-panel">
+          <div class="panel-issue-number">PANEL 3</div>
+          <h3 class="origin-panel-title">THE MULTIDISCIPLINARY BRIDGE</h3>
+          <p class="origin-panel-body">
+            Game designers must speak every dialect: writing mathematical tuning sheets for programmers, greyboxing clear sightlines for 3D environment artists, and designing behavioral AI trees for intelligent adversaries. Agam honed the ability to unify creative visions into cohesive, tightly scoped milestones.
+          </p>
+          <div class="origin-panel-caption">
+            "Design is empathy for both the player exploring the world and the team building it."
+          </div>
+        </article>
+
+        <!-- Panel 4 -->
+        <article class="origin-panel">
+          <div class="panel-issue-number">PANEL 4</div>
+          <h3 class="origin-panel-title">THE CONTINUING ADVENTURE</h3>
+          <p class="origin-panel-body">
+            Today, Agam continues crafting systems and intelligent mechanics that empower players with agency and delight. Ready to tackle systemic complexity, lead gameplay loops, and help studios ship innovative, award-winning experiences.
+          </p>
+          <div class="origin-panel-caption">
+            "The next level is waiting to be built. Let's make something unforgettable!"
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 5: CONTACT / HERO SIGNAL
+         ========================================== -->
+    <section id="section-contact" class="portfolio-section">
+      <div class="section-comic-header">
+        <div class="section-badge-top">DIRECT DISPATCH</div>
+        <h2 class="section-main-title">DISPATCH THE HERO SIGNAL</h2>
+        <p class="section-desc-caption">
+          Seeking a Game Designer who can design tight mechanics, balance complex systemic economies, or build intelligent AI adversaries? Send a signal!
+        </p>
+      </div>
+
+      <div class="contact-comic-wrapper">
+        
+        <!-- Left: Quick Links & Information -->
+        <div class="contact-info-panel">
+          <h3>HEADQUARTERS DISPATCH</h3>
+          <p style="font-size: 16px; line-height: 1.6;">
+            I am currently open to full-time game design roles, freelance combat/mechanics consulting, and collaborative indie studio projects.
+          </p>
+
+          <div class="contact-links-list">
+            <a href="mailto:agam.makhija@example.com" class="contact-link-pill">
+              <span>📧</span> EMAIL AGAM
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener" class="contact-link-pill">
+              <span>💼</span> LINKEDIN PROFILE
+            </a>
+            <a href="https://github.com" target="_blank" rel="noopener" class="contact-link-pill">
+              <span>🐙</span> GITHUB REPOSITORIES
+            </a>
+            <a href="https://itch.io" target="_blank" rel="noopener" class="contact-link-pill">
+              <span>🕹️</span> ITCH.IO PLAYABLE DEMOS
+            </a>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); border: 2px dashed #FFF; padding: 12px 16px; border-radius: 4px;">
+            <div style="font-family: var(--font-title); font-size: 18px; color: var(--comic-yellow);">
+              ⚡ LOCATION & AVAILABILITY
+            </div>
+            <div style="font-size: 14px; margin-top: 4px;">
+              Available for Remote worldwide or on-site studio locations. Immediate responsiveness guaranteed!
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Interactive Contact Form -->
+        <div class="contact-form-panel">
+          <form id="contact-form">
+            <div class="form-group">
+              <label for="sender-name">STUDIO / YOUR NAME:</label>
+              <input type="text" id="sender-name" class="form-control" placeholder="e.g. Marvel Studios / Peter Parker" required>
+            </div>
+
+            <div class="form-group">
+              <label for="sender-email">TRANSMISSION FREQUENCY (EMAIL):</label>
+              <input type="email" id="sender-email" class="form-control" placeholder="peter@dailybugle.com" required>
+            </div>
+
+            <div class="form-group">
+              <label for="mission-type">MISSION OBJECTIVE:</label>
+              <select id="mission-type" class="form-control">
+                <option value="fulltime">Full-Time Game Designer Role</option>
+                <option value="ai-python">AI Systems & Python Consulting</option>
+                <option value="contract">Systems / Level Design Contract</option>
+                <option value="prototype">Rapid Prototyping Collaboration</option>
+                <option value="chat">Design Chat & Coffee</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="mission-message">TRANSMISSION BRIEF:</label>
+              <textarea id="mission-message" class="form-control" placeholder="Brief us on the mechanics, genre, and vision of your project..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-comic-primary" style="width: 100%; justify-content: center; font-size: 24px; padding: 14px;">
+              <span>⚡ FIRE THE SPIDER-SIGNAL!</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       COMIC DOSSIER MODAL (PROJECT DEEP DIVE)
+       ========================================== -->
+  <div class="comic-modal-backdrop" id="project-modal">
+    <div class="comic-modal-sheet">
+      <button class="modal-close-btn" id="modal-close" title="Close Dossier">✕</button>
+      <h2 id="modal-title" style="color: var(--comic-blue); font-size: 34px; margin-bottom: 8px;"></h2>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       FOOTER (COMIC ISSUE SIGN-OFF)
+       ========================================== -->
+  <footer class="comic-footer">
+    <div>EXCELSIOR! • DESIGNED & CRAFTED BY AGAM MAKHIJA</div>
+    <div class="footer-quote">
+      "WITH GREAT GAME DESIGN COMES GREAT MEMORIES."
+    </div>
+  </footer>
+
+  <!-- Scripts in dependency order -->
+  <script src="audio.js"></script>
+  <script src="spiderman.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
