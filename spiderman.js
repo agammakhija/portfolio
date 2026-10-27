@@ -104,9 +104,6 @@ class SpiderManController {
           </g>
         </svg>
       </div>
-
-      <!-- ONOMATOPOEIA BADGE -->
-      <div class="comic-sound-fx" id="transition-sfx">THWIP!</div>
     `;
 
     document.body.appendChild(wrapper);
@@ -118,7 +115,6 @@ class SpiderManController {
     this.webCtx = this.webCanvas.getContext('2d');
     this.speechBubble = document.getElementById('spidey-bubble');
     this.pullSplatEl = document.getElementById('screen-pull-splat');
-    this.sfxEl = document.getElementById('transition-sfx');
     this.mainWrapperEl = document.getElementById('main-wrapper');
     this.backdropEl = document.getElementById('transition-backdrop');
     this.backdropTitleEl = document.getElementById('backdrop-title');
@@ -370,7 +366,6 @@ class SpiderManController {
     if (this.isTransitioning) return;
 
     this.isTransitioning = true;
-    const sfx = this.sfxEl;
     const splat = this.pullSplatEl;
     const mainWrapper = this.mainWrapperEl;
     const backdrop = this.backdropEl;
@@ -402,9 +397,6 @@ class SpiderManController {
     this.pullWeb.progress = 0;
     this.pullWeb.tension = 0;
 
-    sfx.innerText = 'THWIP!';
-    sfx.className = 'comic-sound-fx show thwip-fx';
-
     // Shoot line rapidly from hand to screen (170ms)
     const startTime = performance.now();
     const shootDuration = 170;
@@ -427,8 +419,6 @@ class SpiderManController {
 
     // STEP 2: SPIDER-MAN YANKS TOWARDS THE RIGHT!
     if (window.comicAudio) window.comicAudio.playWhoosh();
-    sfx.innerText = 'YANK!';
-    sfx.className = 'comic-sound-fx show whoosh-fx';
 
     this.crawlerEl.classList.add('spidey-pulling-recoil');
     this.pullWeb.tension = 1.0;
@@ -441,8 +431,6 @@ class SpiderManController {
     await this.wait(400);
 
     // STEP 4: IMPACT "BAM!" & SET POSITION TO TARGET SECTION
-    sfx.innerText = 'BAM!';
-    sfx.className = 'comic-sound-fx show bam-fx';
     if (window.comicAudio) window.comicAudio.playImpact();
 
     const targetEl = document.getElementById(`section-${targetSectionId}`);
