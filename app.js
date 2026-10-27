@@ -181,7 +181,7 @@ class PortfolioApp {
     `).join('');
   }
 
-  // Navigation with Spider-Man Acrobatic Back-Turn Transition
+  // Navigation with Spider-Man Web Pull Transition & Continuous Scroll Spy
   bindNavigation() {
     this.navLinks.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -198,42 +198,50 @@ class PortfolioApp {
         this.navigateToSection(target, title);
       });
     });
+
+    this.bindScrollSpy();
   }
 
-  navigateToSection(sectionId, sectionTitle) {
-    if (this.currentSection === sectionId) return;
-
-    if (window.spidermanController) {
-      window.spidermanController.switchSection(sectionId, sectionTitle, (newId) => {
-        this.applySectionDOMSwitch(newId);
+  // Automatically highlights active navigation as user scrolls continuously
+  bindScrollSpy() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id.replace('section-', '');
+          this.updateActiveNav(id);
+          if (id === 'skills') {
+            this.animateSkillBars();
+          }
+        }
       });
-    } else {
-      this.applySectionDOMSwitch(sectionId);
-    }
-  }
-
-  applySectionDOMSwitch(newId) {
-    this.sections.forEach(sec => {
-      if (sec.id === `section-${newId}`) {
-        sec.classList.add('active-section');
-      } else {
-        sec.classList.remove('active-section');
-      }
+    }, {
+      threshold: 0.3
     });
 
+    this.sections.forEach(sec => observer.observe(sec));
+  }
+
+  updateActiveNav(sectionId) {
+    this.currentSection = sectionId;
     this.navLinks.forEach(btn => {
       const parent = btn.parentElement;
-      if (btn.getAttribute('data-target') === newId) {
+      if (btn.getAttribute('data-target') === sectionId) {
         parent.classList.add('active');
       } else {
         parent.classList.remove('active');
       }
     });
+  }
 
-    this.currentSection = newId;
-
-    if (newId === 'skills') {
-      this.animateSkillBars();
+  navigateToSection(sectionId, sectionTitle) {
+    if (window.spidermanController) {
+      window.spidermanController.switchSection(sectionId, sectionTitle, (newId) => {
+        this.updateActiveNav(newId);
+      });
+    } else {
+      const targetEl = document.getElementById(`section-${sectionId}`);
+      if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+      this.updateActiveNav(sectionId);
     }
   }
 
