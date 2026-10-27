@@ -264,6 +264,22 @@ class SpiderManController {
       );
       ctx.stroke();
 
+      // Glowing projectile tip while web is flying across screen
+      if (p < 0.98) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowColor = '#00F0FF';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(currentTargetX, currentTargetY, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#00F0FF';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(currentTargetX, currentTargetY, 8, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
       ctx.restore();
     }
 
@@ -355,12 +371,13 @@ class SpiderManController {
 
   /**
    * THE EXACT TRANSITION REQUESTED:
-   * 1. Spider-Man shoots a web from his free hand onto the screen ("THWIP!")
-   * 2. Web splat attaches to the screen
-   * 3. Spider-Man pulls with recoil towards the right
-   * 4. The pre-transition page physically gets pulled and slides to the RIGHT!
-   * 5. Behind it, a vibrant red comic background is revealed with "NOW ENTERING: [SECTION]"
-   * 6. "BAM!" impact, scroll sets to target section, page resets smoothly
+   * 1. Spider-Man shoots a web from his free hand onto a RANDOM non-center screen position (never covers text!)
+   * 2. Web flies smoothly and deliberately (560ms) so user can clearly follow the projectile
+   * 3. Web splat attaches to screen glass
+   * 4. Spider-Man pulls with recoil towards the right
+   * 5. The pre-transition page physically gets pulled and smoothly slides to the RIGHT (0.65s)!
+   * 6. Behind it, a vibrant red comic background is revealed with "NOW ENTERING: [SECTION]"
+   * 7. "BAM!" impact, scroll sets to target section, page resets smoothly
    */
   async switchSection(targetSectionId, targetSectionTitle, onSwitchCallback) {
     if (this.isTransitioning) return;
@@ -378,57 +395,72 @@ class SpiderManController {
     const handX = this.spideyX + this.freeHandOffsetX;
     const handY = this.spideyY + this.freeHandOffsetY;
 
-    // Target position on screen (center of viewport)
-    const screenCenterX = window.innerWidth * 0.46;
-    const screenCenterY = window.innerHeight * 0.48;
+    // RANDOM STRIKE POSITION AWAY FROM CENTER (Never covers central text!)
+    // Selects from peripheral zones around screen margins:
+    const strikeZones = [
+      { xMin: 0.12, xMax: 0.28, yMin: 0.18, yMax: 0.32 }, // Upper-Left
+      { xMin: 0.08, xMax: 0.22, yMin: 0.44, yMax: 0.62 }, // Mid-Left
+      { xMin: 0.12, xMax: 0.28, yMin: 0.70, yMax: 0.85 }, // Lower-Left
+      { xMin: 0.62, xMax: 0.76, yMin: 0.16, yMax: 0.28 }, // Upper-Right
+      { xMin: 0.58, xMax: 0.74, yMin: 0.72, yMax: 0.85 }  // Lower-Right
+    ];
+    const zone = strikeZones[Math.floor(Math.random() * strikeZones.length)];
+    const screenTargetX = window.innerWidth * (zone.xMin + Math.random() * (zone.xMax - zone.xMin));
+    const screenTargetY = window.innerHeight * (zone.yMin + Math.random() * (zone.yMax - zone.yMin));
 
     // STEP 1: SPIDER-MAN SHOOTS WEB FROM FREE HAND ONTO SCREEN!
     if (window.comicAudio) window.comicAudio.playThwip();
-    this.showBubble("THWIP! Got the page! Pulling it to the right!", 2500);
+    this.showBubble("THWIP! Got the page! Pulling it to the right!", 3000);
 
-    splat.style.left = `${screenCenterX}px`;
-    splat.style.top = `${screenCenterY}px`;
+    splat.style.left = `${screenTargetX}px`;
+    splat.style.top = `${screenTargetY}px`;
 
     this.pullWeb.active = true;
     this.pullWeb.startX = handX;
     this.pullWeb.startY = handY;
-    this.pullWeb.targetX = screenCenterX;
-    this.pullWeb.targetY = screenCenterY;
+    this.pullWeb.targetX = screenTargetX;
+    this.pullWeb.targetY = screenTargetY;
     this.pullWeb.progress = 0;
     this.pullWeb.tension = 0;
 
-    // Shoot line rapidly from hand to screen (170ms)
+    // Shoot line slowly and deliberately (560ms) with smooth cubic ease-out
     const startTime = performance.now();
-    const shootDuration = 170;
+    const shootDuration = 560;
 
     await new Promise(resolve => {
       const shootStep = (now) => {
         const elapsed = now - startTime;
-        this.pullWeb.progress = Math.min(elapsed / shootDuration, 1);
-        if (this.pullWeb.progress < 1) {
+        const rawProgress = Math.min(elapsed / shootDuration, 1);
+        // Smooth cubic ease-out so user can clearly follow the flight
+        this.pullWeb.progress = 1 - Math.pow(1 - rawProgress, 3);
+        if (rawProgress < 1) {
           requestAnimationFrame(shootStep);
         } else {
+          this.pullWeb.progress = 1;
           resolve();
         }
       };
       requestAnimationFrame(shootStep);
     });
 
+    // Splat pops onto screen glass at the random anchor
     splat.classList.add('splat-active');
-    await this.wait(80);
+    await this.wait(220);
 
-    // STEP 2: SPIDER-MAN YANKS TOWARDS THE RIGHT!
+    // STEP 2: SPIDER-MAN HEAVES & PULLS TOWARDS THE RIGHT!
     if (window.comicAudio) window.comicAudio.playWhoosh();
 
     this.crawlerEl.classList.add('spidey-pulling-recoil');
     this.pullWeb.tension = 1.0;
-    this.pullWeb.targetX = handX + 60; // Pulls towards himself on the right
+    this.pullWeb.targetX = handX + 70; // Pulls towards himself on the right
 
-    // STEP 3: PRE-TRANSITION PAGE GETS YANKED AND SLIDES TO THE RIGHT!
+    await this.wait(180);
+
+    // STEP 3: PRE-TRANSITION PAGE GETS YANKED AND SLIDES TO THE RIGHT (0.65s)!
     if (backdrop) backdrop.classList.add('active');
     if (mainWrapper) mainWrapper.classList.add('pull-page-right');
 
-    await this.wait(400);
+    await this.wait(550);
 
     // STEP 4: IMPACT "BAM!" & SET POSITION TO TARGET SECTION
     if (window.comicAudio) window.comicAudio.playImpact();
@@ -443,7 +475,7 @@ class SpiderManController {
     }
     this.currentSectionId = targetSectionId;
 
-    await this.wait(200);
+    await this.wait(350);
 
     // STEP 5: PAGE RESETS INTO PLACE & RELEASE WEB
     this.pullWeb.active = false;
@@ -453,7 +485,7 @@ class SpiderManController {
     if (mainWrapper) mainWrapper.classList.remove('pull-page-right');
     if (backdrop) backdrop.classList.remove('active');
 
-    await this.wait(300);
+    await this.wait(400);
 
     // Settle bounce on the web line (applied to inner img, zero glitch!)
     this.updatePosition();
