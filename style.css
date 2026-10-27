@@ -1311,32 +1311,99 @@ textarea.form-control {
 }
 
 /* ==========================================================================
-   ACROBATIC JUMP & BACK-TURN TRANSITION
+   SPIDER-MAN SCREEN WEB-SHOOT & PULL TRANSITION
    ========================================================================== */
-.spidey-transition-stage {
+
+/* Spider-Man physical pulling recoil */
+.spidey-crawler.spidey-pulling-recoil {
+  transform-origin: 82px 4px;
+  animation: spideyHeavePull 0.55s ease-in-out forwards !important;
+}
+
+@keyframes spideyHeavePull {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: translateY(-30px) rotate(-24deg) scale(1.14); }
+  60% { transform: translateY(-35px) rotate(-30deg) scale(1.18); }
+  85% { transform: translateY(-15px) rotate(-12deg) scale(1.08); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+
+/* Screen Pull Splat (hits center of screen) */
+.screen-pull-splat {
+  position: fixed;
+  width: 260px;
+  height: 260px;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5100;
+  transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.15s ease;
+}
+
+.screen-pull-splat.splat-active {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  animation: splatWobble 0.35s ease-out;
+}
+
+.pull-splat-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.85));
+}
+
+@keyframes splatWobble {
+  0% { transform: translate(-50%, -50%) scale(0.2) rotate(-15deg); }
+  65% { transform: translate(-50%, -50%) scale(1.18) rotate(5deg); }
+  100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+}
+
+/* Red Comic Curtain (Pulled across by Spider-Man's Web) */
+.red-pull-curtain {
   position: fixed;
   top: 0;
-  left: 0;
+  left: 100vw;
   width: 100vw;
   height: 100vh;
-  z-index: 5000;
-  pointer-events: none;
-  perspective: 1200px;
+  background: var(--comic-red);
+  background-image: 
+    radial-gradient(var(--comic-red-dark) 15%, transparent 16%),
+    radial-gradient(var(--comic-red-dark) 15%, transparent 16%);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+  border-left: 10px solid var(--comic-yellow);
+  box-shadow: -15px 0 0 var(--comic-ink);
+  z-index: 5200;
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+  will-change: left, opacity;
 }
 
-.spidey-transition-stage.hidden {
-  display: none;
-}
-
-.spidey-transition-stage.active {
+.red-pull-curtain.curtain-pulling-in {
+  left: 0;
+  transition: left 0.42s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: auto;
-  background: radial-gradient(circle at center, rgba(15, 76, 129, 0.4), rgba(17, 17, 17, 0.85));
 }
 
-.speed-lines-container {
+.red-pull-curtain.curtain-settle-out {
+  opacity: 0;
+  transition: opacity 0.35s ease-out;
+}
+
+.curtain-halftone-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(255, 222, 0, 0.18), transparent 70%);
+  pointer-events: none;
+}
+
+.curtain-action-lines {
   position: absolute;
   top: 0;
   left: 0;
@@ -1344,184 +1411,62 @@ textarea.form-control {
   height: 100%;
   background: repeating-conic-gradient(
     from 0deg,
-    transparent 0deg 8deg,
-    rgba(255, 255, 255, 0.12) 8deg 12deg,
-    transparent 12deg 20deg
+    transparent 0deg 6deg,
+    rgba(255, 255, 255, 0.08) 6deg 10deg,
+    transparent 10deg 18deg
   );
-  animation: speedSpin 0.3s linear infinite;
+  animation: speedSpin 0.4s linear infinite;
   pointer-events: none;
 }
 
-@keyframes speedSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.comic-sound-fx {
-  position: absolute;
-  top: 15%;
-  font-family: var(--font-title);
-  font-size: clamp(60px, 12vw, 130px);
-  color: var(--comic-yellow);
-  -webkit-text-stroke: 4px var(--comic-ink);
-  text-shadow: 
-    6px 6px 0px var(--comic-red),
-    12px 12px 0px var(--comic-ink);
-  letter-spacing: 4px;
-  transform: rotate(-8deg) scale(0);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 5200;
-}
-
-.comic-sound-fx.show {
-  animation: soundBurstPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-@keyframes soundBurstPop {
-  0% { transform: rotate(-8deg) scale(0.2); opacity: 0; }
-  60% { transform: rotate(5deg) scale(1.2); opacity: 1; }
-  100% { transform: rotate(-4deg) scale(1); opacity: 1; }
-}
-
-.jumping-spidey {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 240px;
-  height: 280px;
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-
-.jumping-spidey-inner {
-  width: 100%;
-  height: 100%;
+.curtain-content {
   position: relative;
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-
-.spidey-leap-front,
-.spidey-leap-back {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.spidey-leap-front {
-  transform: rotateY(0deg);
-}
-
-.spidey-leap-back {
-  transform: rotateY(180deg);
-}
-
-/* ==========================================================================
-   WEB SHOT ON SCREEN (CAMERA LENS SPLAT)
-   ========================================================================== */
-.camera-web-splat {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(85vw, 520px);
-  height: min(85vw, 520px);
-  transform: translate(-50%, -50%) scale(0);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 5150;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
-}
-
-.camera-web-splat.active-splat {
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 1;
-  animation: webSplatVibrate 0.4s ease-out;
-}
-
-.web-splat-svg {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.85));
-}
-
-@keyframes webSplatVibrate {
-  0% { transform: translate(-50%, -50%) scale(0.2) rotate(-10deg); opacity: 0; }
-  60% { transform: translate(-50%, -50%) scale(1.15) rotate(4deg); opacity: 1; }
-  85% { transform: translate(-50%, -50%) scale(0.95) rotate(-2deg); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
-}
-
-/* ==========================================================================
-   VIBRANT RED BACKGROUND REVEAL (EXPANDS FROM HIS BACK)
-   ========================================================================== */
-.red-screen-reveal {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: var(--comic-red);
-  background-image: 
-    radial-gradient(circle at center, var(--comic-red-light) 0%, var(--comic-red) 70%, var(--comic-red-dark) 100%);
-  border: 8px solid var(--comic-yellow);
-  box-shadow: 
-    0 0 0 6px var(--comic-ink),
-    0 0 40px rgba(214, 24, 39, 0.9);
-  transform: translate(-50%, -50%) scale(0);
-  opacity: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5200;
-  pointer-events: none;
-  transition: transform 0.5s cubic-bezier(0.7, 0, 0.2, 1), opacity 0.25s ease;
-}
-
-.red-screen-reveal.expand-red-screen {
-  transform: translate(-50%, -50%) scale(36);
-  opacity: 1;
-}
-
-.red-reveal-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  z-index: 2;
   text-align: center;
-  padding: 8px;
-  transform: scale(0.04);
+  padding: 30px;
+  background: rgba(17, 17, 17, 0.85);
+  border: var(--border-extra);
+  box-shadow: var(--shadow-comic-lg);
+  transform: rotate(-1.5deg);
+  max-width: 90vw;
 }
 
-.red-screen-reveal.expand-red-screen .red-reveal-inner {
-  transform: scale(0.035);
-}
-
-.red-reveal-badge {
+.curtain-badge {
+  display: inline-block;
+  background: var(--comic-yellow);
+  color: var(--comic-ink);
   font-family: var(--font-subhead);
-  font-size: 26px;
-  color: var(--comic-yellow);
-  text-shadow: 2px 2px 0 var(--comic-ink);
-  letter-spacing: 2px;
-  margin-bottom: 4px;
-  white-space: nowrap;
+  font-size: 14px;
+  padding: 4px 16px;
+  border: var(--border-thick);
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-comic-sm);
+  transform: rotate(2deg);
 }
 
-.red-reveal-title {
+.curtain-title {
   font-family: var(--font-title);
-  font-size: 72px;
+  font-size: clamp(50px, 9vw, 110px);
   color: var(--comic-white);
-  -webkit-text-stroke: 3px var(--comic-ink);
-  text-shadow: 6px 6px 0 var(--comic-ink);
+  -webkit-text-stroke: 3.5px var(--comic-ink);
+  text-shadow: 
+    6px 6px 0 var(--comic-yellow),
+    10px 10px 0 var(--comic-ink);
   letter-spacing: 4px;
-  white-space: nowrap;
+  margin-bottom: 6px;
+}
+
+.curtain-subtitle {
+  font-family: var(--font-subhead);
+  font-size: 13px;
+  color: var(--comic-cyan);
+  letter-spacing: 2px;
+}
+
+/* Page yank feedback when Spider-Man pulls */
+body.page-being-pulled .main-wrapper {
+  transform: translateX(-40px) rotate(-0.8deg);
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* ==========================================================================

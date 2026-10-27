@@ -2,13 +2,14 @@
  * Spider-Man Character Controller
  * 
  * Features:
- * 1. Exact upside-down hanging pose matching reference artwork on high-tensile web line
- * 2. Slides down smoothly on scroll with physical pendulum sway & silk friction particles
- * 3. REVAMPED CINEMATIC TRANSITION:
- *    - Shoots a web directly onto the screen (camera lens web splat)
- *    - Leaps forward and SLOWLY TURNS around in 3D mid-air
- *    - As his back turns to the viewer, an expanding VIBRANT RED BACKGROUND reveals the new page!
- *    - Snappy landing back onto his hanging web line on the new page
+ * 1. Exact upside-down hanging Spider-Man from the reference artwork
+ * 2. Slides down the vertical web line as you scroll with pendulum sway
+ * 3. THE SCREEN WEB-PULL TRANSITION:
+ *    - Spider-Man himself shoots a web from his free hand directly onto the screen ("THWIP!")
+ *    - A web splat attaches to the screen
+ *    - Spider-Man physically YANKS & PULLS the web line with recoil effort
+ *    - The pull physically drags the screen, sweeping a bold RED COMIC BACKGROUND across into the new page!
+ *    - Impact "BAM!" as the new page locks in, and Spidey springs back into his hanging pose
  */
 
 class SpiderManController {
@@ -17,7 +18,7 @@ class SpiderManController {
     this.crawlerEl = null;
     this.webCanvas = null;
     this.webCtx = null;
-    this.transitionOverlay = null;
+    this.speechBubble = null;
 
     this.currentScroll = 0;
     this.targetScroll = 0;
@@ -30,10 +31,26 @@ class SpiderManController {
     this.lastScroll = 0;
     this.particles = [];
 
-    // Dimensions: 175px width x ~204px height. Web line anchor at x=82px.
+    // Pull Animation Web Line State
+    this.pullWeb = {
+      active: false,
+      startX: 0,
+      startY: 0,
+      targetX: 0,
+      targetY: 0,
+      progress: 0,
+      tension: 0,
+      splatVisible: false
+    };
+
+    // Normalized dimensions (482x562 original):
+    // Hanging web anchor at top: x = 227 / 482 = 0.471
+    // Free hand (reaching down/right): x = 315 / 482 = 0.653, y = 428 / 562 = 0.761
     this.spideyWidth = 175;
-    this.spideyHeight = Math.round(175 * (562 / 482));
-    this.webAnchorOffsetX = Math.round(this.spideyWidth * (227 / 482));
+    this.spideyHeight = Math.round(175 * (562 / 482)); // ~204px
+    this.webAnchorOffsetX = Math.round(this.spideyWidth * 0.471); // ~82px
+    this.freeHandOffsetX = Math.round(this.spideyWidth * 0.653);  // ~114px
+    this.freeHandOffsetY = Math.round(this.spideyHeight * 0.761); // ~155px
 
     this.spideyX = 0;
     this.spideyY = 40;
@@ -50,11 +67,13 @@ class SpiderManController {
   }
 
   setupDOM() {
-    // 1. Hanging Spider-Man Crawler (Matching reference image)
+    // 1. Hanging Spider-Man Container
     const wrapper = document.createElement('div');
     wrapper.id = 'spidey-container';
     wrapper.innerHTML = `
       <canvas id="spidey-web-canvas"></canvas>
+      
+      <!-- Spider-Man Hanging Upside Down (from uploaded reference image) -->
       <div id="spidey-crawler" class="spidey-crawler spidey-hanging-upside-down" title="Click me to interact!">
         <div class="spidey-speech-bubble" id="spidey-bubble">
           <span>Hanging around! Scroll to slide down!</span>
@@ -69,6 +88,41 @@ class SpiderManController {
           />
         </div>
       </div>
+
+      <!-- WEB SPLAT ATTACHED ONTO THE SCREEN GLASS -->
+      <div class="screen-pull-splat" id="screen-pull-splat">
+        <svg viewBox="0 0 320 320" class="pull-splat-svg">
+          <g stroke="#FFFFFF" stroke-linecap="round" fill="none">
+            <!-- Center impact web knot -->
+            <ellipse cx="160" cy="160" rx="16" ry="16" fill="#FFFFFF" stroke="#111" stroke-width="4"/>
+            <!-- Web net spreading on screen -->
+            <path d="M 160,160 L 20,40 M 160,160 L 160,10 M 160,160 L 300,40" stroke-width="4.5"/>
+            <path d="M 160,160 L 310,160 M 160,160 L 300,280 M 160,160 L 160,310" stroke-width="4.5"/>
+            <path d="M 160,160 L 20,280 M 160,160 L 10,160" stroke-width="4.5"/>
+            <path d="M 160,160 L 80,20 M 160,160 L 240,20 M 160,160 L 300,100" stroke-width="3"/>
+            <path d="M 160,160 L 300,220 M 160,160 L 240,300 M 160,160 L 80,300" stroke-width="3"/>
+            <!-- Concentric silk rings -->
+            <path d="M 120,130 Q 160,115 200,130 Q 215,160 200,190 Q 160,205 120,190 Q 105,160 120,130 Z" stroke-width="3"/>
+            <path d="M 70,90 Q 160,60 250,90 Q 275,160 250,230 Q 160,260 70,230 Q 45,160 70,90 Z" stroke-width="3.5"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- ONOMATOPOEIA BADGE (THWIP! / YANK! / BAM!) -->
+      <div class="comic-sound-fx" id="transition-sfx">THWIP!</div>
+
+      <!-- RED COMIC TRANSITION CURTAIN (PULLED BY SPIDEY'S WEB ACROSS THE SCREEN!) -->
+      <div class="red-pull-curtain" id="red-pull-curtain">
+        <div class="curtain-halftone-overlay"></div>
+        <div class="curtain-action-lines"></div>
+        
+        <!-- Next Page Stamp Banner inside the Red Background -->
+        <div class="curtain-content">
+          <div class="curtain-badge" id="curtain-badge">NEXT ISSUE</div>
+          <div class="curtain-title" id="curtain-title">PROJECTS</div>
+          <div class="curtain-subtitle">PULLED INTO ACTION BY SPIDER-MAN!</div>
+        </div>
+      </div>
     `;
 
     document.body.appendChild(wrapper);
@@ -78,192 +132,9 @@ class SpiderManController {
     this.webCanvas = document.getElementById('spidey-web-canvas');
     this.webCtx = this.webCanvas.getContext('2d');
     this.speechBubble = document.getElementById('spidey-bubble');
-
-    // 2. Fullscreen Cinematic Screen-Web-Shot & Slow-Turn Red Reveal Stage
-    const transitionOverlay = document.createElement('div');
-    transitionOverlay.id = 'spidey-transition-stage';
-    transitionOverlay.className = 'spidey-transition-stage hidden';
-    transitionOverlay.innerHTML = `
-      <!-- Action Speed Lines -->
-      <div class="speed-lines-container" id="speed-lines"></div>
-
-      <!-- WEB SHOT DIRECTLY ONTO THE SCREEN (Camera glass web splat) -->
-      <div class="camera-web-splat" id="camera-web-splat">
-        <svg viewBox="0 0 400 400" class="web-splat-svg">
-          <defs>
-            <filter id="web-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.8"/>
-            </filter>
-          </defs>
-          <g filter="url(#web-glow)" stroke="#FFFFFF" stroke-linecap="round" fill="none">
-            <!-- Center Impact Splat -->
-            <ellipse cx="200" cy="200" rx="14" ry="14" fill="#FFFFFF" stroke="#111" stroke-width="3"/>
-            
-            <!-- Radial Web Spokes shooting outward -->
-            <path d="M 200,200 L 40,60 M 200,200 L 200,20 M 200,200 L 360,60" stroke-width="4.5"/>
-            <path d="M 200,200 L 380,200 M 200,200 L 360,340 M 200,200 L 200,380" stroke-width="4.5"/>
-            <path d="M 200,200 L 40,340 M 200,200 L 20,200" stroke-width="4.5"/>
-            <path d="M 200,200 L 110,30 M 200,200 L 290,30 M 200,200 L 370,120" stroke-width="3.5"/>
-            <path d="M 200,200 L 370,280 M 200,200 L 290,370 M 200,200 L 110,370" stroke-width="3.5"/>
-            <path d="M 200,200 L 30,280 M 200,200 L 30,120" stroke-width="3.5"/>
-
-            <!-- Concentric Web Rings expanding outward -->
-            <!-- Inner ring -->
-            <path d="M 160,165 Q 200,150 240,165 Q 250,200 240,235 Q 200,250 160,235 Q 150,200 160,165 Z" stroke-width="3"/>
-            <!-- Mid ring -->
-            <path d="M 110,120 Q 200,90 290,120 Q 310,200 290,280 Q 200,310 110,280 Q 90,200 110,120 Z" stroke-width="3.5"/>
-            <!-- Outer massive ring -->
-            <path d="M 50,70 Q 200,30 350,70 Q 380,200 350,330 Q 200,370 50,330 Q 20,200 50,70 Z" stroke-width="4"/>
-
-            <!-- Silk drips & web strands -->
-            <path d="M 200,214 Q 202,260 196,310 Q 194,330 198,350" stroke-width="2.5" stroke-dasharray="8 4"/>
-            <path d="M 210,208 Q 230,250 240,290" stroke-width="2"/>
-          </g>
-        </svg>
-      </div>
-
-      <!-- Comic Sound Effect Badge -->
-      <div class="comic-sound-fx" id="transition-sfx">THWIP!</div>
-
-      <!-- 3D Turning Spider-Man Character -->
-      <div class="jumping-spidey" id="jumping-spidey">
-        <div class="jumping-spidey-inner" id="jumping-spidey-inner">
-          
-          <!-- FRONT VIEW: Shooting Web Directly at Screen -->
-          <div class="spidey-leap-front">
-            <svg viewBox="0 0 240 280" width="100%" height="100%">
-              <defs>
-                <filter id="leap-shadow" x="-20%" y="-20%" width="150%" height="150%">
-                  <feDropShadow dx="6" dy="10" stdDeviation="0" flood-color="#000" flood-opacity="1"/>
-                </filter>
-              </defs>
-              <g filter="url(#leap-shadow)">
-                <!-- Left Hand outstretched forward, shooting web at viewer -->
-                <path d="M 85,110 Q 40,80 20,50 L 38,40 Q 60,70 100,95 Z" fill="#0F4C81" stroke="#111" stroke-width="4"/>
-                <path d="M 20,50 L 8,30 C 14,20 28,24 38,40 Z" fill="#D61827" stroke="#111" stroke-width="4"/>
-                <!-- Iconic Thwip two-finger web gesture -->
-                <circle cx="18" cy="30" r="7" fill="#D61827" stroke="#111" stroke-width="3"/>
-                <!-- Web blast nozzle stream -->
-                <path d="M 12,28 L -20,-10 M 16,24 L -10,-25" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
-
-                <!-- Right Arm supporting athletic leap -->
-                <path d="M 140,110 Q 185,95 210,75 L 222,90 Q 190,120 145,120 Z" fill="#0F4C81" stroke="#111" stroke-width="4"/>
-                <circle cx="218" cy="80" r="14" fill="#D61827" stroke="#111" stroke-width="4"/>
-
-                <!-- Torso with muscular contours -->
-                <path d="M 85,85 C 75,130 80,175 90,190 L 140,190 C 150,175 155,130 145,85 Z" fill="#0F4C81" stroke="#111" stroke-width="4"/>
-                <path d="M 98,85 C 92,130 96,175 102,190 L 128,190 C 134,175 138,130 132,85 Z" fill="#D61827" stroke="#111" stroke-width="4"/>
-                
-                <!-- Webbing lines on red vest -->
-                <g stroke="#111" stroke-width="1.8" opacity="0.85">
-                  <path d="M 115,85 L 115,190"/>
-                  <path d="M 98,105 Q 115,115 132,105"/>
-                  <path d="M 94,130 Q 115,142 136,130"/>
-                  <path d="M 96,155 Q 115,166 134,155"/>
-                </g>
-
-                <!-- Chest Spider Emblem -->
-                <ellipse cx="115" cy="125" rx="4.5" ry="8" fill="#111"/>
-                <circle cx="115" cy="116" r="3" fill="#111"/>
-                <path d="M 112,120 Q 98,108 92,98 M 118,120 Q 132,108 138,98" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <path d="M 112,128 Q 96,140 94,156 M 118,128 Q 134,140 136,156" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/>
-
-                <!-- Mask Head looking directly at camera -->
-                <ellipse cx="115" cy="62" rx="30" ry="38" fill="#D61827" stroke="#111" stroke-width="4"/>
-                <!-- Web pattern on mask -->
-                <g stroke="#111" stroke-width="1.8" opacity="0.85">
-                  <path d="M 115,24 L 115,100"/>
-                  <path d="M 85,62 L 145,62"/>
-                  <ellipse cx="115" cy="62" rx="10" ry="12" fill="none"/>
-                  <ellipse cx="115" cy="62" rx="20" ry="24" fill="none"/>
-                </g>
-                <!-- Eyes -->
-                <path d="M 110,54 Q 96,46 88,62 Q 95,78 108,72 Z" fill="#FFF" stroke="#111" stroke-width="3.5"/>
-                <path d="M 120,54 Q 134,46 142,62 Q 135,78 122,72 Z" fill="#FFF" stroke="#111" stroke-width="3.5"/>
-
-                <!-- Dynamic Tuck Acrobatics Legs -->
-                <path d="M 85,185 Q 45,200 40,240 L 62,246 Q 72,215 98,195 Z" fill="#0F4C81" stroke="#111" stroke-width="4"/>
-                <path d="M 40,240 L 22,246 L 45,260 Z" fill="#D61827" stroke="#111" stroke-width="4"/>
-                <path d="M 145,185 Q 185,200 190,240 L 168,246 Q 158,215 132,195 Z" fill="#0F4C81" stroke="#111" stroke-width="4"/>
-                <path d="M 190,240 L 208,246 L 185,260 Z" fill="#D61827" stroke="#111" stroke-width="4"/>
-              </g>
-            </svg>
-          </div>
-
-          <!-- BACK VIEW: Turning around - MASSIVE RED SPIDER EMBLEM & RED EXPANSION -->
-          <div class="spidey-leap-back" id="spidey-leap-back">
-            <svg class="spidey-back-svg" viewBox="0 0 240 280" width="100%" height="100%">
-              <g filter="url(#leap-shadow)">
-                <!-- Arms spread wide in heroic flip -->
-                <path d="M 70,80 Q 20,60 5,95 L 18,105 Q 35,78 70,100 Z" fill="#0F4C81" stroke="#111" stroke-width="4"/>
-                <path d="M 5,95 L 0,115 L 18,105 Z" fill="#D61827" stroke="#111" stroke-width="4"/>
-                <path d="M 170,80 Q 220,60 235,95 L 222,105 Q 205,78 170,100 Z" fill="#0F4C81" stroke="#111" stroke-width="4"/>
-                <path d="M 235,95 L 240,115 L 222,105 Z" fill="#D61827" stroke="#111" stroke-width="4"/>
-
-                <!-- Blue shoulders and back lats -->
-                <path d="M 55,75 C 45,130 55,190 70,210 L 170,210 C 185,190 195,130 185,75 Z" fill="#0F4C81" stroke="#111" stroke-width="4"/>
-
-                <!-- Deep Red Back Torso -->
-                <path d="M 72,70 C 66,120 75,180 82,210 L 158,210 C 165,180 174,120 168,70 Z" fill="#D61827" stroke="#111" stroke-width="4"/>
-                
-                <!-- Webbing lines across back -->
-                <g stroke="#111" stroke-width="2" opacity="0.85">
-                  <path d="M 120,70 L 120,210"/>
-                  <path d="M 78,90 Q 120,100 162,90"/>
-                  <path d="M 72,120 Q 120,135 168,120"/>
-                  <path d="M 74,155 Q 120,170 166,155"/>
-                  <path d="M 78,185 Q 120,195 162,185"/>
-                </g>
-
-                <!-- Back of Masked Head -->
-                <ellipse cx="120" cy="50" rx="28" ry="34" fill="#D61827" stroke="#111" stroke-width="4"/>
-                <g stroke="#111" stroke-width="1.8" opacity="0.85">
-                  <path d="M 120,16 L 120,84"/>
-                  <path d="M 92,50 L 148,50"/>
-                  <ellipse cx="120" cy="50" rx="14" ry="17" fill="none"/>
-                  <ellipse cx="120" cy="50" rx="24" ry="29" fill="none"/>
-                </g>
-
-                <!-- THE ICONIC RED BACK SPIDER EMBLEM (Center of Red Screen Reveal!) -->
-                <g id="spidey-back-symbol" class="spidey-back-symbol">
-                  <ellipse cx="120" cy="140" rx="18" ry="26" fill="#FF172A" stroke="#111" stroke-width="4.5"/>
-                  <!-- Upper legs -->
-                  <path d="M 112,125 Q 90,110 80,88 M 128,125 Q 150,110 160,88" stroke="#FF172A" stroke-width="7" stroke-linecap="round" fill="none"/>
-                  <path d="M 112,125 Q 90,110 80,88 M 128,125 Q 150,110 160,88" stroke="#111" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-                  
-                  <path d="M 110,135 Q 85,130 72,118 M 130,135 Q 155,130 168,118" stroke="#FF172A" stroke-width="7" stroke-linecap="round" fill="none"/>
-                  <path d="M 110,135 Q 85,130 72,118 M 130,135 Q 155,130 168,118" stroke="#111" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-
-                  <!-- Lower legs -->
-                  <path d="M 110,148 Q 85,155 78,182 M 130,148 Q 155,155 162,182" stroke="#FF172A" stroke-width="7" stroke-linecap="round" fill="none"/>
-                  <path d="M 110,148 Q 85,155 78,182 M 130,148 Q 155,155 162,182" stroke="#111" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-
-                  <path d="M 114,158 Q 95,175 90,208 M 126,158 Q 145,175 150,208" stroke="#FF172A" stroke-width="7" stroke-linecap="round" fill="none"/>
-                  <path d="M 114,158 Q 95,175 90,208 M 126,158 Q 145,175 150,208" stroke="#111" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-                </g>
-
-                <!-- Legs in dynamic kick -->
-                <path d="M 75,205 Q 45,230 40,265 L 60,270 Q 75,235 90,215 Z" fill="#0F4C81" stroke="#111" stroke-width="4"/>
-                <path d="M 165,205 Q 195,230 200,265 L 180,270 Q 165,235 150,215 Z" fill="#0F4C81" stroke="#111" stroke-width="4"/>
-              </g>
-            </svg>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- VIBRANT RED BACKGROUND REVEAL PORTAL (Expands from his back to reveal new page!) -->
-      <div class="red-screen-reveal" id="red-screen-reveal">
-        <div class="red-reveal-rays"></div>
-        <div class="red-reveal-inner">
-          <div class="red-reveal-badge" id="red-reveal-badge">SWITCHING ISSUE...</div>
-          <div class="red-reveal-title" id="red-reveal-title">NEXT PAGE</div>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(transitionOverlay);
-    this.transitionOverlay = transitionOverlay;
+    this.pullSplatEl = document.getElementById('screen-pull-splat');
+    this.pullCurtainEl = document.getElementById('red-pull-curtain');
+    this.sfxEl = document.getElementById('transition-sfx');
   }
 
   setupWebCanvas() {
@@ -284,7 +155,7 @@ class SpiderManController {
     this.crawlerEl.addEventListener('click', () => {
       if (this.isTransitioning) return;
       if (window.comicAudio) window.comicAudio.playThwip();
-      this.showBubble("THWIP! Hanging upside-down! Click any tab to see me flip!", 3000);
+      this.showBubble("THWIP! Hanging upside-down! Click any tab to see me pull the page!", 3000);
       this.triggerWebBounce();
     });
 
@@ -312,20 +183,19 @@ class SpiderManController {
     }, duration);
   }
 
-  // Draw continuous silk strand from top of screen to Spider-Man's hand
-  drawWebLine(spideyScreenX, spideyScreenY, swayOffset = 0) {
+  // Draw both the vertical hanging web strand AND the dynamic web pull strand
+  drawWebCanvas(spideyScreenX, spideyScreenY, swayOffset = 0) {
     const ctx = this.webCtx;
     ctx.clearRect(0, 0, this.webCanvas.width, this.webCanvas.height);
 
-    if (this.isTransitioning) return;
-
+    // 1. VERTICAL HANGING WEB STRAND (from top of screen down to Spidey's upper hand)
     const anchorX = spideyScreenX + this.webAnchorOffsetX + swayOffset;
     const anchorY = 0;
     const targetY = spideyScreenY + 4;
 
     ctx.save();
 
-    // Shadow strand
+    // Shadow
     ctx.lineWidth = 3.5;
     ctx.strokeStyle = 'rgba(17, 17, 17, 0.4)';
     ctx.beginPath();
@@ -333,7 +203,7 @@ class SpiderManController {
     ctx.quadraticCurveTo(anchorX + 2 + swayOffset * 0.35, targetY / 2, anchorX + 2, targetY);
     ctx.stroke();
 
-    // Main silk strand
+    // High-tensile silk strand
     ctx.lineWidth = 2.8;
     ctx.strokeStyle = '#FFFFFF';
     ctx.beginPath();
@@ -341,7 +211,7 @@ class SpiderManController {
     ctx.quadraticCurveTo(anchorX + swayOffset * 0.35, targetY / 2, anchorX, targetY);
     ctx.stroke();
 
-    // Silk spiral knots
+    // Spiral knots
     ctx.lineWidth = 1.2;
     ctx.strokeStyle = '#D8EDFA';
     const knots = Math.floor(targetY / 20);
@@ -354,11 +224,65 @@ class SpiderManController {
     }
 
     // Scroll friction particles
-    if (Math.abs(this.slideVelocity) > 0.8) {
+    if (Math.abs(this.slideVelocity) > 0.8 && !this.isTransitioning) {
       this.emitFrictionParticles(anchorX, targetY + 30);
     }
-
     this.renderParticles(ctx);
+
+    // 2. DYNAMIC SCREEN WEB-SHOOT & PULL LINE (from Spidey's free hand to the screen splat!)
+    if (this.pullWeb.active) {
+      const handX = spideyScreenX + this.freeHandOffsetX + swayOffset;
+      const handY = spideyScreenY + this.freeHandOffsetY;
+
+      const p = this.pullWeb.progress;
+      const currentTargetX = handX + (this.pullWeb.targetX - handX) * p;
+      const currentTargetY = handY + (this.pullWeb.targetY - handY) * p;
+
+      // Elastic tension vibration
+      const tensionVibe = Math.sin(Date.now() * 0.05) * this.pullWeb.tension * 8;
+
+      ctx.save();
+      // Drop shadow for web line
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#111111';
+      ctx.beginPath();
+      ctx.moveTo(handX + 2, handY + 3);
+      ctx.quadraticCurveTo(
+        (handX + currentTargetX) / 2 + tensionVibe,
+        (handY + currentTargetY) / 2 + 15,
+        currentTargetX + 2,
+        currentTargetY + 3
+      );
+      ctx.stroke();
+
+      // Bold high-tensile braided pull cable
+      ctx.lineWidth = 4.5;
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.moveTo(handX, handY);
+      ctx.quadraticCurveTo(
+        (handX + currentTargetX) / 2 + tensionVibe,
+        (handY + currentTargetY) / 2 + 15,
+        currentTargetX,
+        currentTargetY
+      );
+      ctx.stroke();
+
+      // Inner cyan/blue silk core
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#C5E6FF';
+      ctx.beginPath();
+      ctx.moveTo(handX, handY);
+      ctx.quadraticCurveTo(
+        (handX + currentTargetX) / 2 + tensionVibe,
+        (handY + currentTargetY) / 2 + 15,
+        currentTargetX,
+        currentTargetY
+      );
+      ctx.stroke();
+
+      ctx.restore();
+    }
 
     ctx.restore();
   }
@@ -414,9 +338,7 @@ class SpiderManController {
     const progress = docHeight > 0 ? Math.min(Math.max(this.currentScroll / docHeight, 0), 1) : 0;
     this.scrollProgress = progress;
 
-    if (!this.isTransitioning) {
-      this.updatePosition();
-    }
+    this.updatePosition();
 
     requestAnimationFrame(() => this.animate());
   }
@@ -438,120 +360,136 @@ class SpiderManController {
     this.spideyX = currentX;
     this.spideyY = currentY;
 
-    if (this.crawlerEl) {
+    if (this.crawlerEl && !this.isTransitioning) {
       this.crawlerEl.style.transform = `translate3d(${currentX + sway}px, ${currentY}px, 0) rotate(${sway * 0.45 + tilt}deg)`;
     }
 
-    this.drawWebLine(currentX, currentY, sway);
+    this.drawWebCanvas(currentX, currentY, sway);
   }
 
   /**
-   * THE REVAMPED CINEMATIC TRANSITION:
-   * 1. Spider-Man shoots a web directly onto the screen (camera glass splat) with a loud "THWIP!"
-   * 2. Leaps into the center of the viewport and SLOWLY turns in 3D mid-air
-   * 3. As his back turns to the camera, a VIBRANT RED BACKGROUND bursts out from his back,
-   *    revealing the new screen underneath!
-   * 4. Comic impact "BAM!" and smooth return to hanging web line
+   * THE REQUESTED SCREEN WEB-PULL TRANSITION:
+   * 1. Spider-Man (hanging upside down) shoots a web from his free hand directly onto the screen ("THWIP!")
+   * 2. The web line strikes the center of the screen, creating an impact web splat
+   * 3. Spider-Man reels back, flexing his body with heavy pull tension
+   * 4. His pull DRAGS THE SCREEN, sweeping in a VIBRANT RED COMIC BACKGROUND across the viewport!
+   * 5. Impact "BAM!" as the red curtain reveals the new page
+   * 6. Spider-Man springs back to his hanging line ready to slide as you scroll the new page!
    */
   async switchSection(targetSectionId, targetSectionTitle, onSwitchCallback) {
     if (this.isTransitioning) return;
     if (this.currentSectionId === targetSectionId) return;
 
     this.isTransitioning = true;
-    const overlay = this.transitionOverlay;
-    const webSplat = document.getElementById('camera-web-splat');
-    const jumpingSpidey = document.getElementById('jumping-spidey');
-    const jumpingInner = document.getElementById('jumping-spidey-inner');
-    const sfxBadge = document.getElementById('transition-sfx');
-    const redReveal = document.getElementById('red-screen-reveal');
-    const redBadge = document.getElementById('red-reveal-badge');
-    const redTitle = document.getElementById('red-reveal-title');
+    const sfx = this.sfxEl;
+    const splat = this.pullSplatEl;
+    const curtain = this.pullCurtainEl;
+    const badge = document.getElementById('curtain-badge');
+    const title = document.getElementById('curtain-title');
 
-    // Hide normal crawler
-    this.crawlerEl.style.opacity = '0';
-    this.webCtx.clearRect(0, 0, this.webCanvas.width, this.webCanvas.height);
+    badge.innerText = `NEW ISSUE COMING IN:`;
+    title.innerText = targetSectionTitle.toUpperCase();
 
-    // Starting and center coordinates
-    const startX = this.spideyX;
-    const startY = this.spideyY;
-    const targetCenterX = window.innerWidth / 2 - 120;
-    const targetCenterY = window.innerHeight / 2 - 140;
+    // Free hand position right now
+    const handX = this.spideyX + this.freeHandOffsetX;
+    const handY = this.spideyY + this.freeHandOffsetY;
 
-    // Reset transition DOM states
-    redBadge.innerText = `NOW ENTERING ISSUE:`;
-    redTitle.innerText = targetSectionTitle.toUpperCase();
+    // Target position on screen (center of viewport)
+    const screenCenterX = window.innerWidth * 0.45;
+    const screenCenterY = window.innerHeight * 0.48;
 
-    overlay.classList.remove('hidden');
-    overlay.classList.add('active');
-
-    // Reset web splat & character transform
-    webSplat.classList.remove('active-splat');
-    redReveal.classList.remove('expand-red-screen');
-    jumpingSpidey.style.transition = 'none';
-    jumpingSpidey.style.transform = `translate3d(${startX}px, ${startY}px, 0) scale(0.65)`;
-    jumpingInner.style.transition = 'none';
-    jumpingInner.style.transform = 'rotateY(0deg)';
-
-    sfxBadge.innerText = 'THWIP!';
-    sfxBadge.className = 'comic-sound-fx show thwip-fx';
-
-    void jumpingSpidey.offsetWidth;
-
-    // STEP 1: SPIDER-MAN SHOOTS WEB DIRECTLY ONTO THE SCREEN!
+    // STEP 1: SPIDER-MAN SHOOTS WEB FROM HIS FREE HAND ONTO THE SCREEN!
     if (window.comicAudio) window.comicAudio.playThwip();
-    webSplat.classList.add('active-splat');
+    this.showBubble("THWIP! Got the screen! Pulling it in!", 2500);
 
-    await this.wait(200);
+    // Position the splat at screen center
+    splat.style.left = `${screenCenterX}px`;
+    splat.style.top = `${screenCenterY}px`;
 
-    // STEP 2: LEAPS FORWARD & SLOWLY TURNS IN 3D MID-AIR
+    // Activate the web shoot animation on canvas
+    this.pullWeb.active = true;
+    this.pullWeb.startX = handX;
+    this.pullWeb.startY = handY;
+    this.pullWeb.targetX = screenCenterX;
+    this.pullWeb.targetY = screenCenterY;
+    this.pullWeb.progress = 0;
+    this.pullWeb.tension = 0;
+
+    sfx.innerText = 'THWIP!';
+    sfx.className = 'comic-sound-fx show thwip-fx';
+
+    // Shoot line rapidly from hand to screen (180ms)
+    const startTime = performance.now();
+    const shootDuration = 180;
+
+    await new Promise(resolve => {
+      const shootStep = (now) => {
+        const elapsed = now - startTime;
+        this.pullWeb.progress = Math.min(elapsed / shootDuration, 1);
+        if (this.pullWeb.progress < 1) {
+          requestAnimationFrame(shootStep);
+        } else {
+          resolve();
+        }
+      };
+      requestAnimationFrame(shootStep);
+    });
+
+    // Web splat pops onto screen glass
+    splat.classList.add('splat-active');
+    await this.wait(100);
+
+    // STEP 2: SPIDER-MAN HEAVES & PULLS WITH MUSCULAR TENSION!
     if (window.comicAudio) window.comicAudio.playWhoosh();
-    sfxBadge.innerText = 'WHOOSH!';
-    sfxBadge.className = 'comic-sound-fx show whoosh-fx';
+    sfx.innerText = 'YANK!';
+    sfx.className = 'comic-sound-fx show whoosh-fx';
 
-    // Leap to center
-    jumpingSpidey.style.transition = 'transform 0.85s cubic-bezier(0.2, 0.8, 0.25, 1)';
-    jumpingSpidey.style.transform = `translate3d(${targetCenterX}px, ${targetCenterY}px, 0) scale(1.75)`;
+    // Spider-Man heaves backward on his hanging line to pull the screen
+    this.crawlerEl.classList.add('spidey-pulling-recoil');
+    this.pullWeb.tension = 1.0;
 
-    // SLOW, DELIBERATE 3D TURN (revealing his muscular back)
-    jumpingInner.style.transition = 'transform 0.9s cubic-bezier(0.35, 0, 0.25, 1)';
-    jumpingInner.style.transform = 'rotateY(180deg)';
+    // Pull web line starts tugging screen center towards Spidey
+    this.pullWeb.targetX = handX - 180;
 
-    await this.wait(500);
+    await this.wait(120);
 
-    // STEP 3: VIBRANT RED BACKGROUND BURSTS OUT DIRECTLY FROM HIS BACK!
-    sfxBadge.innerText = 'BAM!';
-    sfxBadge.className = 'comic-sound-fx show bam-fx';
+    // STEP 3: THE WEB PULLS THE SCREEN! VIBRANT RED BACKGROUND SWEEPS ACROSS!
+    curtain.classList.add('curtain-pulling-in');
+    document.body.classList.add('page-being-pulled');
+
+    await this.wait(350);
+
+    // STEP 4: IMPACT "BAM!" - NEW SECTION REVEALED IN RED!
+    sfx.innerText = 'BAM!';
+    sfx.className = 'comic-sound-fx show bam-fx';
     if (window.comicAudio) window.comicAudio.playImpact();
 
-    redReveal.classList.add('expand-red-screen');
-    jumpingSpidey.style.transition = 'transform 0.5s ease-in';
-    jumpingSpidey.style.transform = `translate3d(${targetCenterX}px, ${targetCenterY}px, 0) scale(9)`;
-
-    await this.wait(400);
-
-    // STEP 4: Switch DOM screen content under the red background
+    // Switch the actual DOM section underneath
     if (onSwitchCallback) {
       onSwitchCallback(targetSectionId);
     }
     this.currentSectionId = targetSectionId;
 
-    // Reset scroll to top of new section
+    // Reset scroll position to top
     window.scrollTo({ top: 0, behavior: 'instant' });
     this.currentScroll = 0;
     this.targetScroll = 0;
     this.scrollProgress = 0;
 
+    await this.wait(400);
+
+    // STEP 5: RELEASE THE WEB, RED CURTAIN RETRACTS, SPIDEY RETURNS
+    this.pullWeb.active = false;
+    splat.classList.remove('splat-active');
+    this.crawlerEl.classList.remove('spidey-pulling-recoil');
+    curtain.classList.add('curtain-settle-out');
+
     await this.wait(350);
 
-    // STEP 5: Smoothly fade out red transition and return Spider-Man to his web line
-    overlay.classList.remove('active');
-    await this.wait(280);
-    overlay.classList.add('hidden');
-    webSplat.classList.remove('active-splat');
-    redReveal.classList.remove('expand-red-screen');
+    curtain.classList.remove('curtain-pulling-in', 'curtain-settle-out');
+    document.body.classList.remove('page-being-pulled');
 
-    // Restore Spidey hanging upside-down on the new page
-    this.crawlerEl.style.opacity = '1';
+    // Bounce and celebration
     this.updatePosition();
     this.triggerWebBounce();
     this.showBubble(`Welcome to ${targetSectionTitle}!`, 2800);
