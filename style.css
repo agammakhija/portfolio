@@ -267,6 +267,13 @@ button:active {
   padding: 40px 24px 100px 24px;
   position: relative;
   z-index: 10;
+  transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1);
+  will-change: transform;
+}
+
+/* Spider-Man pulling the page to the RIGHT */
+.main-wrapper.pull-page-right {
+  transform: translateX(115vw) rotate(1.8deg) scale(0.98);
 }
 
 .portfolio-section {
@@ -1270,14 +1277,14 @@ textarea.form-control {
   transform: translateY(4px) scale(1.03);
 }
 
-.spidey-crawler.bounce-action {
+.spidey-crawler.bounce-action .spidey-hang-img {
   animation: spideyBounce 0.45s ease-out;
 }
 
 @keyframes spideyBounce {
   0% { transform: translateY(0); }
-  35% { transform: translateY(-25px) scale(1.08); }
-  65% { transform: translateY(8px) scale(0.95); }
+  35% { transform: translateY(-20px) scale(1.06); }
+  65% { transform: translateY(6px) scale(0.96); }
   100% { transform: translateY(0); }
 }
 
@@ -1308,10 +1315,10 @@ textarea.form-control {
 }
 
 /* ==========================================================================
-   SPIDER-MAN SCREEN WEB-SHOOT & PULL TRANSITION (RIGHT-TO-LEFT)
+   SPIDER-MAN SCREEN WEB-SHOOT & PAGE-PULL-RIGHT TRANSITION
    ========================================================================== */
 
-/* Spider-Man physical pulling recoil - APPLIED TO INNER IMG SO CONTAINER NEVER TELEPORTS! */
+/* Spider-Man physical pulling recoil - applied to inner image so container never teleports! */
 .spidey-crawler.spidey-pulling-recoil .spidey-hang-img {
   animation: spideyHeavePull 0.55s ease-in-out forwards;
 }
@@ -1354,8 +1361,10 @@ textarea.form-control {
   100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
 }
 
-/* Red Comic Curtain (PURE RIGHT-TO-LEFT SWEEP) */
-.red-pull-curtain {
+/* ==========================================================================
+   RED COMIC TRANSITION BACKDROP (REVEALED UNDER THE PULLED PAGE)
+   ========================================================================== */
+.transition-red-backdrop {
   position: fixed;
   top: 0;
   left: 0;
@@ -1367,42 +1376,21 @@ textarea.form-control {
     radial-gradient(var(--comic-red-dark) 15%, transparent 16%);
   background-size: 24px 24px;
   background-position: 0 0, 12px 12px;
-  border-left: 10px solid var(--comic-yellow);
-  border-right: 10px solid var(--comic-yellow);
-  box-shadow: -15px 0 0 var(--comic-ink);
-  z-index: 5200;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0;
   pointer-events: none;
   overflow: hidden;
-  transform: translateX(105vw); /* Starts completely off-screen to the RIGHT */
-  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-  will-change: transform;
+  transition: opacity 0.25s ease;
 }
 
-/* Pulled into center: moves from right to left */
-.red-pull-curtain.curtain-pulling-in {
-  transform: translateX(0);
-  pointer-events: auto;
+.transition-red-backdrop.active {
+  opacity: 1;
 }
 
-/* Exits to the left: continues moving right to left */
-.red-pull-curtain.curtain-settle-out {
-  transform: translateX(-105vw);
-}
-
-.curtain-halftone-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at center, rgba(255, 222, 0, 0.18), transparent 70%);
-  pointer-events: none;
-}
-
-.curtain-action-lines {
+.backdrop-rays {
   position: absolute;
   top: 0;
   left: 0;
@@ -1418,7 +1406,7 @@ textarea.form-control {
   pointer-events: none;
 }
 
-.curtain-content {
+.backdrop-banner {
   position: relative;
   z-index: 2;
   text-align: center;
@@ -1430,7 +1418,7 @@ textarea.form-control {
   max-width: 90vw;
 }
 
-.curtain-badge {
+.backdrop-tag {
   display: inline-block;
   background: var(--comic-yellow);
   color: var(--comic-ink);
@@ -1443,7 +1431,7 @@ textarea.form-control {
   transform: rotate(2deg);
 }
 
-.curtain-title {
+.backdrop-title {
   font-family: var(--font-title);
   font-size: clamp(50px, 9vw, 110px);
   color: var(--comic-white);
@@ -1452,20 +1440,7 @@ textarea.form-control {
     6px 6px 0 var(--comic-yellow),
     10px 10px 0 var(--comic-ink);
   letter-spacing: 4px;
-  margin-bottom: 6px;
-}
-
-.curtain-subtitle {
-  font-family: var(--font-subhead);
-  font-size: 13px;
-  color: var(--comic-cyan);
-  letter-spacing: 2px;
-}
-
-/* Page yank feedback when Spider-Man pulls */
-body.page-being-pulled .main-wrapper {
-  transform: translateX(-40px) rotate(-0.8deg);
-  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  margin: 0;
 }
 
 /* ==========================================================================

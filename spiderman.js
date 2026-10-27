@@ -2,14 +2,16 @@
  * Spider-Man Character Controller
  * 
  * Features:
- * 1. Upside-down hanging Spider-Man from the reference artwork
+ * 1. Exact upside-down hanging Spider-Man from the reference artwork
  * 2. Continuous descending along vertical web strand through all sections
- * 3. SCREEN WEB-SHOOT & PULL TRANSITION (PURE RIGHT-TO-LEFT):
- *    - Spider-Man shoots a web from his free hand directly onto the screen ("THWIP!")
+ * 3. ZERO-GLITCH GUARANTEED: Container position translate3d(currentX, currentY) is permanently preserved
+ * 4. PULL-PAGE-TO-THE-RIGHT TRANSITION:
+ *    - Spider-Man shoots a web from his free hand to the screen glass ("THWIP!")
  *    - Web splat attaches to the screen
- *    - Spider-Man physically heaves and recoils (inner image animates, zero position teleportation)
- *    - The pull sweeps a bold RED COMIC CURTAIN from RIGHT to LEFT across the screen!
- *    - Smoothly scrolls to the requested section and exits off to the left!
+ *    - Spider-Man pulls with muscular recoil towards the right
+ *    - The current page physically gets yanked and SLIDES TO THE RIGHT!
+ *    - Vibrant red comic background revealed underneath with "NOW ENTERING: [SECTION]"
+ *    - BAM! Impact sound, instant scroll to target section, page resets smoothly
  */
 
 class SpiderManController {
@@ -71,7 +73,7 @@ class SpiderManController {
     wrapper.innerHTML = `
       <canvas id="spidey-web-canvas"></canvas>
       
-      <!-- Spider-Man Hanging Upside Down -->
+      <!-- Spider-Man Hanging Upside Down (Container NEVER teleports) -->
       <div id="spidey-crawler" class="spidey-crawler spidey-hanging-upside-down" title="Click me to interact!">
         <div class="spidey-speech-bubble" id="spidey-bubble">
           <span>Hanging around! Scroll to explore!</span>
@@ -105,30 +107,21 @@ class SpiderManController {
 
       <!-- ONOMATOPOEIA BADGE -->
       <div class="comic-sound-fx" id="transition-sfx">THWIP!</div>
-
-      <!-- RED COMIC TRANSITION CURTAIN (PURE RIGHT-TO-LEFT SWEEP) -->
-      <div class="red-pull-curtain" id="red-pull-curtain">
-        <div class="curtain-halftone-overlay"></div>
-        <div class="curtain-action-lines"></div>
-        
-        <div class="curtain-content">
-          <div class="curtain-badge" id="curtain-badge">NEW ISSUE INCOMING</div>
-          <div class="curtain-title" id="curtain-title">PROJECTS</div>
-          <div class="curtain-subtitle">PULLED RIGHT-TO-LEFT BY SPIDER-MAN!</div>
-        </div>
-      </div>
     `;
 
     document.body.appendChild(wrapper);
 
     this.container = wrapper;
     this.crawlerEl = document.getElementById('spidey-crawler');
+    this.hangImgEl = document.getElementById('spidey-hang-img');
     this.webCanvas = document.getElementById('spidey-web-canvas');
     this.webCtx = this.webCanvas.getContext('2d');
     this.speechBubble = document.getElementById('spidey-bubble');
     this.pullSplatEl = document.getElementById('screen-pull-splat');
-    this.pullCurtainEl = document.getElementById('red-pull-curtain');
     this.sfxEl = document.getElementById('transition-sfx');
+    this.mainWrapperEl = document.getElementById('main-wrapper');
+    this.backdropEl = document.getElementById('transition-backdrop');
+    this.backdropTitleEl = document.getElementById('backdrop-title');
   }
 
   setupWebCanvas() {
@@ -149,7 +142,7 @@ class SpiderManController {
     this.crawlerEl.addEventListener('click', () => {
       if (this.isTransitioning) return;
       if (window.comicAudio) window.comicAudio.playThwip();
-      this.showBubble("THWIP! Scroll down to see my Education & Projects!", 3000);
+      this.showBubble("THWIP! Click any tab to see me pull the page to the right!", 3000);
       this.triggerWebBounce();
     });
 
@@ -161,6 +154,7 @@ class SpiderManController {
     });
   }
 
+  // Bounce applied to inner img so container position never glitches
   triggerWebBounce() {
     this.crawlerEl.classList.remove('bounce-action');
     void this.crawlerEl.offsetWidth;
@@ -223,7 +217,7 @@ class SpiderManController {
     }
     this.renderParticles(ctx);
 
-    // 2. DYNAMIC PULL WEB LINE (Shooting from Spidey's free hand across to the screen)
+    // 2. DYNAMIC PULL WEB LINE (From free hand to screen splat)
     if (this.pullWeb.active) {
       const handX = spideyScreenX + this.freeHandOffsetX + swayOffset;
       const handY = spideyScreenY + this.freeHandOffsetY;
@@ -232,7 +226,6 @@ class SpiderManController {
       const currentTargetX = handX + (this.pullWeb.targetX - handX) * p;
       const currentTargetY = handY + (this.pullWeb.targetY - handY) * p;
 
-      // Elastic tension vibration
       const tensionVibe = Math.sin(Date.now() * 0.05) * this.pullWeb.tension * 8;
 
       ctx.save();
@@ -346,7 +339,7 @@ class SpiderManController {
     const maxY = viewportHeight - this.spideyHeight - 50;
     const currentY = minY + (maxY - minY) * this.scrollProgress;
 
-    // Firmly placed on the right margin (NEVER jumps to opposite side!)
+    // Firmly anchored on the right margin (NEVER jumps to opposite side!)
     const rightGutter = viewportWidth > 768 ? Math.max(20, viewportWidth * 0.04) : 8;
     const currentX = viewportWidth - rightGutter - this.spideyWidth;
 
@@ -365,13 +358,13 @@ class SpiderManController {
   }
 
   /**
-   * PURE RIGHT-TO-LEFT SCREEN WEB PULL TRANSITION:
-   * 1. Spider-Man shoots web from his free hand onto the screen ("THWIP!")
-   * 2. Web splat attaches to screen center
-   * 3. Spider-Man pulls with recoil effort (inner image animates, container NEVER teleports!)
-   * 4. The pull DRAGS the RED COMIC CURTAIN from RIGHT to LEFT across the screen!
-   * 5. Smoothly scrolls down to the target section
-   * 6. The red curtain continues out off-screen to the LEFT!
+   * THE EXACT TRANSITION REQUESTED:
+   * 1. Spider-Man shoots a web from his free hand onto the screen ("THWIP!")
+   * 2. Web splat attaches to the screen
+   * 3. Spider-Man pulls with recoil towards the right
+   * 4. The pre-transition page physically gets pulled and slides to the RIGHT!
+   * 5. Behind it, a vibrant red comic background is revealed with "NOW ENTERING: [SECTION]"
+   * 6. "BAM!" impact, scroll sets to target section, page resets smoothly
    */
   async switchSection(targetSectionId, targetSectionTitle, onSwitchCallback) {
     if (this.isTransitioning) return;
@@ -379,28 +372,24 @@ class SpiderManController {
     this.isTransitioning = true;
     const sfx = this.sfxEl;
     const splat = this.pullSplatEl;
-    const curtain = this.pullCurtainEl;
-    const badge = document.getElementById('curtain-badge');
-    const title = document.getElementById('curtain-title');
+    const mainWrapper = this.mainWrapperEl;
+    const backdrop = this.backdropEl;
 
-    badge.innerText = `NOW ENTERING:`;
-    title.innerText = targetSectionTitle.toUpperCase();
+    if (this.backdropTitleEl) {
+      this.backdropTitleEl.innerText = targetSectionTitle.toUpperCase();
+    }
 
     // Hand position on the right side
     const handX = this.spideyX + this.freeHandOffsetX;
     const handY = this.spideyY + this.freeHandOffsetY;
 
-    // Target position on screen
-    const screenCenterX = window.innerWidth * 0.45;
+    // Target position on screen (center of viewport)
+    const screenCenterX = window.innerWidth * 0.46;
     const screenCenterY = window.innerHeight * 0.48;
-
-    // Reset curtain to start off-screen on the RIGHT (105vw)
-    curtain.classList.remove('curtain-pulling-in', 'curtain-settle-out');
-    void curtain.offsetWidth; // Force reflow
 
     // STEP 1: SPIDER-MAN SHOOTS WEB FROM FREE HAND ONTO SCREEN!
     if (window.comicAudio) window.comicAudio.playThwip();
-    this.showBubble("THWIP! Got the screen! Pulling it in!", 2500);
+    this.showBubble("THWIP! Got the page! Pulling it to the right!", 2500);
 
     splat.style.left = `${screenCenterX}px`;
     splat.style.top = `${screenCenterY}px`;
@@ -434,26 +423,24 @@ class SpiderManController {
     });
 
     splat.classList.add('splat-active');
-    await this.wait(100);
+    await this.wait(80);
 
-    // STEP 2: SPIDER-MAN HEAVES BACKWARD (NO CONTAINER TELEPORT GLITCH!)
+    // STEP 2: SPIDER-MAN YANKS TOWARDS THE RIGHT!
     if (window.comicAudio) window.comicAudio.playWhoosh();
     sfx.innerText = 'YANK!';
     sfx.className = 'comic-sound-fx show whoosh-fx';
 
     this.crawlerEl.classList.add('spidey-pulling-recoil');
     this.pullWeb.tension = 1.0;
-    this.pullWeb.targetX = handX - 160;
+    this.pullWeb.targetX = handX + 60; // Pulls towards himself on the right
 
-    await this.wait(100);
+    // STEP 3: PRE-TRANSITION PAGE GETS YANKED AND SLIDES TO THE RIGHT!
+    if (backdrop) backdrop.classList.add('active');
+    if (mainWrapper) mainWrapper.classList.add('pull-page-right');
 
-    // STEP 3: RED CURTAIN SWEEPS IN FROM RIGHT TO LEFT!
-    curtain.classList.add('curtain-pulling-in');
-    document.body.classList.add('page-being-pulled');
+    await this.wait(400);
 
-    await this.wait(380);
-
-    // STEP 4: IMPACT "BAM!" & SCROLL CONTINUOUSLY TO TARGET SECTION
+    // STEP 4: IMPACT "BAM!" & SET POSITION TO TARGET SECTION
     sfx.innerText = 'BAM!';
     sfx.className = 'comic-sound-fx show bam-fx';
     if (window.comicAudio) window.comicAudio.playImpact();
@@ -468,24 +455,22 @@ class SpiderManController {
     }
     this.currentSectionId = targetSectionId;
 
-    await this.wait(250);
+    await this.wait(200);
 
-    // STEP 5: RED CURTAIN CONTINUES OFF-SCREEN TO THE LEFT (PURE RIGHT-TO-LEFT!)
+    // STEP 5: PAGE RESETS INTO PLACE & RELEASE WEB
     this.pullWeb.active = false;
     splat.classList.remove('splat-active');
     this.crawlerEl.classList.remove('spidey-pulling-recoil');
 
-    curtain.classList.add('curtain-settle-out');
+    if (mainWrapper) mainWrapper.classList.remove('pull-page-right');
+    if (backdrop) backdrop.classList.remove('active');
 
-    await this.wait(400);
+    await this.wait(300);
 
-    curtain.classList.remove('curtain-pulling-in', 'curtain-settle-out');
-    document.body.classList.remove('page-being-pulled');
-
-    // Settle bounce on the web line
+    // Settle bounce on the web line (applied to inner img, zero glitch!)
     this.updatePosition();
     this.triggerWebBounce();
-    this.showBubble(`Welcome to ${targetSectionTitle}!`, 2800);
+    this.showBubble(`Welcome to ${targetSectionTitle}!`, 2500);
 
     this.isTransitioning = false;
   }
