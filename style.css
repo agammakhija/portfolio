@@ -1315,6 +1315,12 @@ textarea.form-control {
   transform: scale(1);
 }
 
+/* Speech bubble position when Spider-Man swings to the left side */
+.spidey-crawler.spidey-on-left .spidey-speech-bubble {
+  left: 20px;
+  right: auto;
+}
+
 /* ==========================================================================
    SPIDER-MAN SCREEN WEB-SHOOT & PAGE-PULL-RIGHT TRANSITION
    ========================================================================== */
@@ -1629,8 +1635,13 @@ textarea.form-control {
   }
   
   .spidey-crawler {
-    transform-origin: top right;
+    transform-origin: 82px 4px;
     scale: 0.85;
+  }
+
+  .spidey-crawler.spidey-on-left .spidey-speech-bubble {
+    left: 10px;
+    width: 175px;
   }
 
   .nav-links {

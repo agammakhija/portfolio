@@ -5,22 +5,29 @@
  * 1. Exact upside-down hanging Spider-Man from the reference artwork
  * 2. Continuous descending along vertical web strand through all sections
  * 3. ZERO-GLITCH GUARANTEED: Container position translate3d(currentX, currentY) is permanently preserved
- * 4. PULL-PAGE-TO-THE-RIGHT TRANSITION:
- *    - Spider-Man shoots a web from his free hand to the screen glass ("THWIP!")
- *    - Web splat attaches to the screen
- *    - Spider-Man pulls with muscular recoil towards the right
- *    - The current page physically gets yanked and SLIDES TO THE RIGHT!
- *    - Vibrant red comic background revealed underneath with "NOW ENTERING: [SECTION]"
- *    - BAM! Impact sound, instant scroll to target section, page resets smoothly
+ * 4. 30-SECOND ACROBATIC SWING:
+ *    - Automatically swings to the opposite side every 30 seconds with pendulum physics
+ *    - Web line dynamically connects and sways with aerodynamic curve
+ * 5. ALWAYS RETURNS TO RIGHT SIDE ON SLIDE TRANSITION:
+ *    - Whenever user navigates or changes slides, Spider-Man immediately swings back to the right side
+ *    - Fires web from free hand to random non-center screen point ("THWIP!")
+ *    - Heaves and physically pulls current page to the RIGHT (0.65s)
+ *    - Reveals vibrant red comic backdrop underneath with target section title
+ *    - Impact "BAM!", instant scroll, smooth reset, and timer restarts
  */
 
 class SpiderManController {
   constructor() {
     this.container = null;
     this.crawlerEl = null;
+    this.hangImgEl = null;
     this.webCanvas = null;
     this.webCtx = null;
     this.speechBubble = null;
+    this.pullSplatEl = null;
+    this.mainWrapperEl = null;
+    this.backdropEl = null;
+    this.backdropTitleEl = null;
 
     this.currentScroll = 0;
     this.targetScroll = 0;
@@ -56,6 +63,13 @@ class SpiderManController {
     this.spideyX = 0;
     this.spideyY = 40;
 
+    // Periodic 30-Second Swing System
+    this.currentSide = 'right'; // 'right' (default) or 'left'
+    this.isSwinging = false;
+    this.swingState = null;
+    this.swingTimer = null;
+    this.SWING_INTERVAL = 30000; // 30 seconds
+
     this.init();
   }
 
@@ -65,6 +79,7 @@ class SpiderManController {
     this.bindEvents();
     this.updatePosition(true);
     this.animate();
+    this.startSwingTimer();
   }
 
   setupDOM() {
@@ -122,7 +137,10 @@ class SpiderManController {
 
   setupWebCanvas() {
     this.resizeCanvas();
-    window.addEventListener('resize', () => this.resizeCanvas());
+    window.addEventListener('resize', () => {
+      this.resizeCanvas();
+      this.updatePosition();
+    });
   }
 
   resizeCanvas() {
@@ -138,7 +156,11 @@ class SpiderManController {
     this.crawlerEl.addEventListener('click', () => {
       if (this.isTransitioning) return;
       if (window.comicAudio) window.comicAudio.playThwip();
-      this.showBubble("THWIP! Click any tab to see me pull the page to the right!", 3000);
+      if (this.currentSide === 'left') {
+        this.showBubble("THWIP! Click any tab to see me swing back and pull the page!", 3000);
+      } else {
+        this.showBubble("THWIP! Click any tab to see me pull the page to the right!", 3000);
+      }
       this.triggerWebBounce();
     });
 
@@ -147,6 +169,14 @@ class SpiderManController {
     });
     this.crawlerEl.addEventListener('mouseleave', () => {
       this.crawlerEl.classList.remove('hover-bob');
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.clearSwingTimer();
+      } else if (!this.isTransitioning) {
+        this.resetSwingTimer();
+      }
     });
   }
 
@@ -167,15 +197,186 @@ class SpiderManController {
     }, duration);
   }
 
+  // 30-Second Swing Timer Management
+  startSwingTimer() {
+    this.clearSwingTimer();
+    this.swingTimer = setTimeout(() => {
+      this.triggerPeriodicSwing();
+    }, this.SWING_INTERVAL);
+  }
+
+  clearSwingTimer() {
+    if (this.swingTimer) {
+      clearTimeout(this.swingTimer);
+      this.swingTimer = null;
+    }
+  }
+
+  resetSwingTimer() {
+    this.clearSwingTimer();
+    this.startSwingTimer();
+  }
+
+  async triggerPeriodicSwing() {
+    // If user is currently running a transition, postpone swing
+    if (this.isTransitioning || document.hidden) {
+      this.startSwingTimer();
+      return;
+    }
+
+    const nextSide = this.currentSide === 'right' ? 'left' : 'right';
+    await this.swingToSide(nextSide, 1200);
+
+    // Re-schedule next swing in 30 seconds
+    this.startSwingTimer();
+  }
+
+  /**
+   * Acrobatically swings Spider-Man to targetSide ('left' or 'right')
+   */
+  swingToSide(targetSide, duration = 1200) {
+    if (this.currentSide === targetSide && !this.isSwinging) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      if (window.comicAudio) {
+        window.comicAudio.playWhoosh();
+      }
+
+      const viewportWidth = window.innerWidth;
+      const startX = this.spideyX;
+      const endX = this.getSideX(targetSide, viewportWidth);
+      const targetCeilingX = endX + this.webAnchorOffsetX;
+      const direction = targetSide === 'left' ? -1 : 1;
+
+      this.isSwinging = true;
+
+      // Update crawler alignment class for speech bubble
+      if (targetSide === 'left') {
+        this.crawlerEl.classList.add('spidey-on-left');
+      } else {
+        this.crawlerEl.classList.remove('spidey-on-left');
+      }
+
+      const startTime = performance.now();
+
+      const swingStep = (now) => {
+        if (!this.isSwinging) {
+          resolve();
+          return;
+        }
+
+        const elapsed = now - startTime;
+        const rawProgress = Math.min(elapsed / duration, 1);
+
+        // Sinusoidal easeInOut for genuine pendulum physics
+        const eased = 0.5 - 0.5 * Math.cos(rawProgress * Math.PI);
+
+        // Parabolic arc dip (deepest at midpoint)
+        const maxDip = Math.min(85, window.innerHeight * 0.12);
+        const dip = Math.sin(rawProgress * Math.PI) * maxDip;
+
+        // Dynamic tilt into the swing direction
+        const tilt = direction * Math.sin(rawProgress * Math.PI) * 22;
+
+        this.swingState = {
+          startX,
+          endX,
+          currentX: startX + (endX - startX) * eased,
+          ceilingAnchorX: targetCeilingX,
+          dip,
+          tilt,
+          direction,
+          progress: rawProgress,
+          easedProgress: eased
+        };
+
+        if (rawProgress < 1) {
+          requestAnimationFrame(swingStep);
+        } else {
+          this.isSwinging = false;
+          this.swingState = null;
+          this.currentSide = targetSide;
+
+          // Settle bounce on arrival
+          this.triggerWebBounce();
+
+          // Character speech bubble
+          if (targetSide === 'left') {
+            this.showBubble("WHOOSH! Patrolling the left side!", 2500);
+          } else {
+            this.showBubble("Back on the right flank!", 2500);
+          }
+
+          resolve();
+        }
+      };
+
+      requestAnimationFrame(swingStep);
+    });
+  }
+
+  /**
+   * Fast return to right side when transition is triggered
+   */
+  async returnToRightSideFast() {
+    const rightX = this.getSideX('right', window.innerWidth);
+    if (this.currentSide === 'right' && !this.isSwinging && Math.abs(this.spideyX - rightX) < 5) {
+      return;
+    }
+
+    // Cancel any ongoing slow swing
+    this.isSwinging = false;
+    this.swingState = null;
+
+    if (window.comicAudio) window.comicAudio.playWhoosh();
+    this.showBubble("Duty calls! Back to the right!", 1500);
+
+    // Fast, energetic 460ms return swing to the right side
+    await this.swingToSide('right', 460);
+    this.currentSide = 'right';
+    this.crawlerEl.classList.remove('spidey-on-left');
+    this.updatePosition();
+  }
+
+  getSideX(side, viewportWidth) {
+    const gutter = viewportWidth > 768 ? Math.max(20, viewportWidth * 0.04) : 8;
+    if (side === 'left') {
+      return gutter;
+    } else {
+      return viewportWidth - gutter - this.spideyWidth;
+    }
+  }
+
   // Draw continuous hanging web line + dynamic pull web line
   drawWebCanvas(spideyScreenX, spideyScreenY, swayOffset = 0) {
     const ctx = this.webCtx;
     ctx.clearRect(0, 0, this.webCanvas.width, this.webCanvas.height);
 
-    // 1. VERTICAL HANGING WEB STRAND (Anchor at top of screen)
-    const anchorX = spideyScreenX + this.webAnchorOffsetX + swayOffset;
-    const anchorY = 0;
-    const targetY = spideyScreenY + 4;
+    // 1. VERTICAL HANGING OR ACROBATIC SWINGING WEB STRAND
+    let anchorX, anchorY, targetX, targetY, controlX, controlY;
+
+    if (this.isSwinging && this.swingState) {
+      // Connect to ceiling anchor above destination during swing
+      anchorX = this.swingState.ceilingAnchorX;
+      anchorY = 0;
+      targetX = spideyScreenX + this.webAnchorOffsetX;
+      targetY = spideyScreenY + 4;
+
+      // Aerodynamic curve in web line as it cuts through the air
+      const dragLag = -this.swingState.direction * Math.sin(this.swingState.progress * Math.PI) * 25;
+      controlX = (anchorX + targetX) / 2 + dragLag;
+      controlY = (anchorY + targetY) / 2 + 10;
+    } else {
+      // Resting vertical hanging strand
+      anchorX = spideyScreenX + this.webAnchorOffsetX + swayOffset;
+      anchorY = 0;
+      targetX = spideyScreenX + this.webAnchorOffsetX + swayOffset;
+      targetY = spideyScreenY + 4;
+      controlX = anchorX + swayOffset * 0.35;
+      controlY = targetY / 2;
+    }
 
     ctx.save();
 
@@ -184,7 +385,7 @@ class SpiderManController {
     ctx.strokeStyle = 'rgba(17, 17, 17, 0.4)';
     ctx.beginPath();
     ctx.moveTo(anchorX + 2, anchorY);
-    ctx.quadraticCurveTo(anchorX + 2 + swayOffset * 0.35, targetY / 2, anchorX + 2, targetY);
+    ctx.quadraticCurveTo(controlX + 2, controlY, targetX + 2, targetY);
     ctx.stroke();
 
     // Main silk strand
@@ -192,26 +393,34 @@ class SpiderManController {
     ctx.strokeStyle = '#FFFFFF';
     ctx.beginPath();
     ctx.moveTo(anchorX, anchorY);
-    ctx.quadraticCurveTo(anchorX + swayOffset * 0.35, targetY / 2, anchorX, targetY);
+    ctx.quadraticCurveTo(controlX, controlY, targetX, targetY);
     ctx.stroke();
 
     // Spiral knots
     ctx.lineWidth = 1.2;
     ctx.strokeStyle = '#D8EDFA';
-    const knots = Math.floor(targetY / 20);
+    const totalDist = Math.hypot(targetX - anchorX, targetY - anchorY);
+    const knots = Math.max(3, Math.floor(totalDist / 20));
     for (let i = 1; i < knots; i++) {
-      const ky = i * 20;
-      const kx = anchorX + Math.sin(i * 0.9 + Date.now() * 0.004) * 1.8;
+      const frac = i / knots;
+      const ky = anchorY + (targetY - anchorY) * frac;
+      const kx = anchorX + (targetX - anchorX) * frac + Math.sin(i * 0.9 + Date.now() * 0.004) * 1.8;
       ctx.beginPath();
       ctx.arc(kx, ky, 2.2, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    // Scroll friction particles
-    if (Math.abs(this.slideVelocity) > 0.8 && !this.isTransitioning) {
+    // Friction / Wind particles
+    if (this.isSwinging) {
+      if (Math.random() > 0.4) {
+        this.emitFrictionParticles(targetX, targetY);
+      }
+    } else if (Math.abs(this.slideVelocity) > 0.8 && !this.isTransitioning) {
       this.emitFrictionParticles(anchorX, targetY + 30);
     }
     this.renderParticles(ctx);
+
+    ctx.restore();
 
     // 2. DYNAMIC PULL WEB LINE (From free hand to screen splat)
     if (this.pullWeb.active) {
@@ -282,8 +491,6 @@ class SpiderManController {
 
       ctx.restore();
     }
-
-    ctx.restore();
   }
 
   emitFrictionParticles(x, y) {
@@ -349,21 +556,28 @@ class SpiderManController {
     // Continuous sliding down the viewport as user scrolls
     const minY = 35;
     const maxY = viewportHeight - this.spideyHeight - 50;
-    const currentY = minY + (maxY - minY) * this.scrollProgress;
+    const baseCurrentY = minY + (maxY - minY) * this.scrollProgress;
 
-    // Firmly anchored on the right margin (NEVER jumps to opposite side!)
-    const rightGutter = viewportWidth > 768 ? Math.max(20, viewportWidth * 0.04) : 8;
-    const currentX = viewportWidth - rightGutter - this.spideyWidth;
-
+    let currentX, currentY, tiltAngle;
     const sway = Math.sin(Date.now() * 0.002) * 6;
-    const tilt = Math.max(Math.min(this.slideVelocity * 0.3, 5), -5);
+    const scrollTilt = Math.max(Math.min(this.slideVelocity * 0.3, 5), -5);
+
+    if (this.isSwinging && this.swingState) {
+      currentX = this.swingState.currentX;
+      currentY = baseCurrentY + this.swingState.dip;
+      tiltAngle = this.swingState.tilt + scrollTilt;
+    } else {
+      currentX = this.getSideX(this.currentSide, viewportWidth);
+      currentY = baseCurrentY;
+      tiltAngle = sway * 0.45 + scrollTilt;
+    }
 
     this.spideyX = currentX;
     this.spideyY = currentY;
 
     if (this.crawlerEl) {
-      // Container ALWAYS retains translate3d(currentX, currentY)
-      this.crawlerEl.style.transform = `translate3d(${currentX + sway}px, ${currentY}px, 0) rotate(${sway * 0.45 + tilt}deg)`;
+      const renderX = this.isSwinging ? currentX : (currentX + sway);
+      this.crawlerEl.style.transform = `translate3d(${renderX}px, ${currentY}px, 0) rotate(${tiltAngle}deg)`;
     }
 
     this.drawWebCanvas(currentX, currentY, sway);
@@ -371,18 +585,29 @@ class SpiderManController {
 
   /**
    * THE EXACT TRANSITION REQUESTED:
-   * 1. Spider-Man shoots a web from his free hand onto a RANDOM non-center screen position (never covers text!)
-   * 2. Web flies smoothly and deliberately (560ms) so user can clearly follow the projectile
-   * 3. Web splat attaches to screen glass
-   * 4. Spider-Man pulls with recoil towards the right
-   * 5. The pre-transition page physically gets pulled and smoothly slides to the RIGHT (0.65s)!
-   * 6. Behind it, a vibrant red comic background is revealed with "NOW ENTERING: [SECTION]"
-   * 7. "BAM!" impact, scroll sets to target section, page resets smoothly
+   * 1. Guarantees Spider-Man is back on the RIGHT side no matter what
+   * 2. Shoots web from free hand onto a RANDOM non-center screen position (never covers central text!)
+   * 3. Web flies smoothly and deliberately (560ms) so user can clearly follow the projectile
+   * 4. Web splat attaches to screen glass
+   * 5. Spider-Man heaves & pulls with recoil towards the right
+   * 6. The pre-transition page physically gets pulled and smoothly slides to the RIGHT (0.65s)!
+   * 7. Behind it, vibrant red comic background is revealed with "NOW ENTERING: [SECTION]"
+   * 8. Impact "BAM!", scroll sets to target section, page resets smoothly into view
+   * 9. 30-second swing timer restarts fresh
    */
   async switchSection(targetSectionId, targetSectionTitle, onSwitchCallback) {
     if (this.isTransitioning) return;
 
     this.isTransitioning = true;
+
+    // Cancel/reset the 30s swing timer so he stays put during transition
+    this.clearSwingTimer();
+
+    // MANDATORY REQUIREMENT: Spider-Man MUST come back to the right side no matter what!
+    if (this.currentSide !== 'right' || this.isSwinging) {
+      await this.returnToRightSideFast();
+    }
+
     const splat = this.pullSplatEl;
     const mainWrapper = this.mainWrapperEl;
     const backdrop = this.backdropEl;
@@ -391,7 +616,7 @@ class SpiderManController {
       this.backdropTitleEl.innerText = targetSectionTitle.toUpperCase();
     }
 
-    // Hand position on the right side
+    // Hand position firmly anchored on the right side
     const handX = this.spideyX + this.freeHandOffsetX;
     const handY = this.spideyY + this.freeHandOffsetY;
 
@@ -431,7 +656,6 @@ class SpiderManController {
       const shootStep = (now) => {
         const elapsed = now - startTime;
         const rawProgress = Math.min(elapsed / shootDuration, 1);
-        // Smooth cubic ease-out so user can clearly follow the flight
         this.pullWeb.progress = 1 - Math.pow(1 - rawProgress, 3);
         if (rawProgress < 1) {
           requestAnimationFrame(shootStep);
@@ -493,6 +717,9 @@ class SpiderManController {
     this.showBubble(`Welcome to ${targetSectionTitle}!`, 2500);
 
     this.isTransitioning = false;
+
+    // Restart the 30-second swing timer!
+    this.startSwingTimer();
   }
 
   wait(ms) {
