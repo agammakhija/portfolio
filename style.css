@@ -1314,16 +1314,57 @@ textarea.form-control {
   right: auto;
 }
 
-/* Spider-Man Body Wrapper - Rotates 180deg to stand upright when on floor */
+/* Spider-Man Body Wrapper - Container for hanging and standing sprites */
 .spidey-body-wrapper {
+  position: relative;
   width: 100%;
   height: 100%;
-  transform-origin: 50% 50%;
-  transition: transform 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.spidey-crawler.spidey-on-floor .spidey-body-wrapper {
-  transform: rotate(180deg);
+.spidey-hang-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(6px 8px 0px rgba(17, 17, 17, 0.9));
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.spidey-stand-img {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: auto;
+  height: 204px;
+  object-fit: contain;
+  filter: drop-shadow(6px 8px 0px rgba(17, 17, 17, 0.9));
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(18px) scale(0.92);
+  transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+  pointer-events: none;
+}
+
+/* Floor standing mode: smoothly swaps from hanging sprite to genuine standing sprite! */
+.spidey-crawler.spidey-on-floor .spidey-hang-img {
+  opacity: 0;
+  transform: translateY(-24px) scale(0.85);
+  pointer-events: none;
+}
+
+.spidey-crawler.spidey-on-floor .spidey-stand-img {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+  pointer-events: auto;
 }
 
 .spidey-crawler.spidey-on-floor .spidey-speech-bubble {

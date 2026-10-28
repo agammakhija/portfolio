@@ -100,11 +100,20 @@ class SpiderManController {
           <span>Hanging around! Scroll to explore!</span>
         </div>
         <div class="spidey-body-wrapper" id="spidey-body-wrapper">
+          <!-- Hanging Sprite (Upside Down) -->
           <img 
             src="spiderman-hanging.png" 
             alt="Spider-Man Hanging Upside Down" 
             id="spidey-hang-img"
             class="spidey-hang-img"
+            draggable="false"
+          />
+          <!-- Standing Sprite (Normal Feet on Floor) -->
+          <img 
+            src="spiderman-standing.png" 
+            alt="Spider-Man Standing Normally" 
+            id="spidey-stand-img"
+            class="spidey-stand-img"
             draggable="false"
           />
         </div>
@@ -132,6 +141,7 @@ class SpiderManController {
     this.container = wrapper;
     this.crawlerEl = document.getElementById('spidey-crawler');
     this.hangImgEl = document.getElementById('spidey-hang-img');
+    this.standImgEl = document.getElementById('spidey-stand-img');
     this.webCanvas = document.getElementById('spidey-web-canvas');
     this.webCtx = this.webCanvas.getContext('2d');
     this.speechBubble = document.getElementById('spidey-bubble');
