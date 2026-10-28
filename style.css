@@ -1419,12 +1419,14 @@ textarea.form-control {
   background: rgba(17, 17, 17, 0.88);
   border: var(--border-extra);
   box-shadow: var(--shadow-comic-lg);
-  transform: rotate(-1.5deg) scale(0.96);
-  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: rotate(-1.5deg) scale(0.92);
+  opacity: 0;
+  transition: opacity 0.5s ease 0.1s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
   max-width: 90vw;
 }
 
 .transition-red-backdrop.active .backdrop-banner {
+  opacity: 1;
   transform: rotate(-1.5deg) scale(1);
 }
 
@@ -1438,7 +1440,14 @@ textarea.form-control {
   border: var(--border-thick);
   margin-bottom: 12px;
   box-shadow: var(--shadow-comic-sm);
-  transform: rotate(2deg);
+  transform: rotate(2deg) translateY(8px);
+  opacity: 0;
+  transition: opacity 0.6s ease 0.2s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+}
+
+.transition-red-backdrop.active .backdrop-tag {
+  opacity: 1;
+  transform: rotate(2deg) translateY(0);
 }
 
 .backdrop-title {
@@ -1451,6 +1460,14 @@ textarea.form-control {
     10px 10px 0 var(--comic-ink);
   letter-spacing: 4px;
   margin: 0;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.75s ease 0.25s, transform 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.25s;
+}
+
+.transition-red-backdrop.active .backdrop-title {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ==========================================================================

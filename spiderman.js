@@ -781,8 +781,8 @@ class SpiderManController {
       mainWrapper.style.transform = '';
     }
 
-    // Small pause to take in the comic section announcement banner (200ms)
-    await this.wait(200);
+    // Smooth pause to let the cinematic comic title fade in slowly (480ms)
+    await this.wait(480);
 
     // PHASE 5: SMOOTHLY UNVEIL THE TARGET SECTION
     if (backdrop) {
