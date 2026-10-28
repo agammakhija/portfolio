@@ -9,6 +9,7 @@ class PortfolioApp {
     this.navLinks = document.querySelectorAll('.nav-item button');
     this.sections = document.querySelectorAll('.portfolio-section');
     this.soundToggleBtn = document.getElementById('sound-toggle');
+    this.themeToggleBtn = document.getElementById('theme-toggle');
     this.contactForm = document.getElementById('contact-form');
 
     // Prompt Crafter Simulation State
@@ -51,9 +52,11 @@ class PortfolioApp {
 
   init() {
     this.bindNavigation();
+    this.bindThemeToggle();
     this.bindSoundToggle();
     this.bindContactForm();
     this.bindSimulator();
+    this.bindComicActionWords();
     this.bindEasterEggs();
   }
 
@@ -211,6 +214,41 @@ class PortfolioApp {
     }
   }
 
+  bindThemeToggle() {
+    if (!this.themeToggleBtn) {
+      this.themeToggleBtn = document.getElementById('theme-toggle');
+    }
+    if (!this.themeToggleBtn) return;
+
+    // Restore saved theme preference from localStorage
+    const savedEra = localStorage.getItem('comic-theme-era');
+    if (savedEra === 'vintage') {
+      document.documentElement.classList.add('theme-vintage');
+      document.body.classList.add('theme-vintage');
+      this.themeToggleBtn.innerHTML = `<span>📰</span> ERA: 1960s`;
+    } else {
+      this.themeToggleBtn.innerHTML = `<span>✨</span> ERA: MODERN`;
+    }
+
+    this.themeToggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isVintage = document.body.classList.toggle('theme-vintage');
+      document.documentElement.classList.toggle('theme-vintage', isVintage);
+      localStorage.setItem('comic-theme-era', isVintage ? 'vintage' : 'modern');
+      this.themeToggleBtn.innerHTML = isVintage 
+        ? `<span>📰</span> ERA: 1960s` 
+        : `<span>✨</span> ERA: MODERN`;
+
+      if (window.comicAudio) window.comicAudio.playClick();
+      if (window.spidermanController) {
+        window.spidermanController.showBubble(
+          isVintage ? "Entering the 1960s Golden Age!" : "Back to Modern High-Gloss comics!",
+          2600
+        );
+      }
+    });
+  }
+
   bindSoundToggle() {
     if (!this.soundToggleBtn) return;
     this.soundToggleBtn.addEventListener('click', () => {
@@ -228,32 +266,114 @@ class PortfolioApp {
       e.preventDefault();
       if (window.comicAudio) window.comicAudio.playImpact();
 
+      const name = document.getElementById('sender-name').value.trim();
+      const email = document.getElementById('sender-email').value.trim();
+      const missionSelect = document.getElementById('mission-type');
+      const missionText = missionSelect.options[missionSelect.selectedIndex].text;
+      const message = document.getElementById('mission-message').value.trim();
+
       const btn = this.contactForm.querySelector('button[type="submit"]');
+      const statusNote = document.getElementById('contact-status-note');
       const originalText = btn.innerHTML;
-      btn.innerHTML = `DISPATCHING...`;
+      btn.innerHTML = `DISPATCHING EMAIL...`;
       btn.disabled = true;
 
+      const subject = encodeURIComponent(`[Portfolio Dispatch] ${missionText} - from ${name}`);
+      const body = encodeURIComponent(
+        `Hi Agam,\n\nName: ${name}\nEmail: ${email}\nMission/Topic: ${missionText}\n\nMessage:\n${message}\n\n---\nSent via Agam Makhija's Comic Portfolio`
+      );
+      const mailtoUrl = `mailto:agam.makhija07@gmail.com?subject=${subject}&body=${body}`;
+
       setTimeout(() => {
+        // Trigger mail client
+        window.location.href = mailtoUrl;
+
         if (window.spidermanController) {
-          window.spidermanController.showBubble("TRANSMISSION RECEIVED! I'll get back to you soon!", 4000);
+          window.spidermanController.showBubble("Transmission prepared! Opening your email app to send!", 4500);
         }
-        btn.innerHTML = `✓ DISPATCHED TO AGAM!`;
+
+        btn.innerHTML = `✓ OPENING EMAIL CLIENT...`;
         btn.style.background = '#00E676';
-        this.contactForm.reset();
+
+        if (statusNote) {
+          statusNote.style.display = 'block';
+          statusNote.innerHTML = `
+            ✉️ Email drafted! If your email app didn't open automatically, 
+            <a href="${mailtoUrl}">click here to send directly to agam.makhija07@gmail.com</a>.
+          `;
+        }
 
         setTimeout(() => {
           btn.innerHTML = originalText;
           btn.style.background = '';
           btn.disabled = false;
-        }, 3500);
-      }, 700);
+        }, 5000);
+      }, 500);
     });
+  }
+
+  bindComicActionWords() {
+    const handlePop = (clientX, clientY, target) => {
+      let wordPool = ['POW!', 'BAM!', 'WHAM!', 'POP!', 'ZAP!', 'BOOM!'];
+
+      if (target && target.closest('#spidey-container, .spidey-crawler')) {
+        wordPool = ['THWIP!', 'WALL-CRAWL!', 'HEY!', 'SPIDEY!'];
+      } else if (target && target.closest('.nav-item button')) {
+        wordPool = ['THWIP!', 'SWOOSH!', 'WHOOSH!', 'ZOOM!'];
+      } else if (target && target.closest('#btn-run-py-sim, #btn-cycle-prompt, .sim-tab-btn')) {
+        wordPool = ['ZAP!', 'CRACKLE!', 'EXEC!', 'BOOM!'];
+      } else if (target && target.closest('.sound-toggle-btn, .theme-toggle-btn')) {
+        wordPool = ['CLICK!', 'SWITCH!', 'POP!'];
+      } else if (target && target.closest('button[type="submit"]')) {
+        wordPool = ['DISPATCH!', 'KAPOW!', 'BAM!'];
+      }
+
+      const word = wordPool[Math.floor(Math.random() * wordPool.length)];
+      const colors = ['#FFDE00', '#00E5FF', '#FF1744', '#00E676', '#FF9100'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const rotation = (Math.random() * 26 - 13).toFixed(1);
+
+      if ((!clientX && !clientY) || (clientX === 0 && clientY === 0)) {
+        if (target && target.getBoundingClientRect) {
+          const rect = target.getBoundingClientRect();
+          clientX = rect.left + rect.width / 2;
+          clientY = rect.top + rect.height / 2;
+        } else {
+          clientX = window.innerWidth / 2;
+          clientY = window.innerHeight / 2;
+        }
+      }
+
+      const popEl = document.createElement('div');
+      popEl.className = 'comic-action-pop';
+      popEl.textContent = word;
+      popEl.style.position = 'fixed';
+      popEl.style.left = `${clientX}px`;
+      popEl.style.top = `${clientY}px`;
+      popEl.style.background = color;
+      popEl.style.color = (color === '#FFDE00' || color === '#00E5FF' || color === '#00E676') ? '#111' : '#FFF';
+      popEl.style.setProperty('--rot', `${rotation}deg`);
+      popEl.style.pointerEvents = 'none';
+      popEl.style.zIndex = '9999999';
+
+      document.body.appendChild(popEl);
+
+      setTimeout(() => {
+        if (popEl.parentNode) popEl.remove();
+      }, 650);
+    };
+
+    // Capture-phase listener guarantees it fires on every click anywhere
+    window.addEventListener('click', (e) => {
+      if (e.button !== 0) return;
+      handlePop(e.clientX, e.clientY, e.target);
+    }, true);
   }
 
   bindEasterEggs() {
     document.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
-        if (window.comicAudio && !btn.classList.contains('sound-toggle-btn')) {
+        if (window.comicAudio && !btn.classList.contains('sound-toggle-btn') && !btn.classList.contains('theme-toggle-btn')) {
           window.comicAudio.playClick();
         }
       });

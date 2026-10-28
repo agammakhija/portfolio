@@ -51,6 +51,51 @@ body {
   overflow-x: hidden;
   position: relative;
   min-height: 100vh;
+  transition: background-color 0.35s ease, filter 0.35s ease;
+}
+
+/* ==========================================================================
+   VINTAGE 1960s COMIC ERA THEME (Jack Kirby / Steve Ditko Silver Age)
+   ========================================================================== */
+:root.theme-vintage,
+body.theme-vintage {
+  --comic-red: #B82824;
+  --comic-red-light: #D4443F;
+  --comic-red-dark: #781715;
+  --comic-blue: #1C5485;
+  --comic-blue-light: #2E6DA4;
+  --comic-blue-dark: #103250;
+  --comic-yellow: #DDA726;
+  --comic-yellow-light: #EFC862;
+  --comic-paper: #F3E5C8;
+  --comic-paper-dark: #DFC9A3;
+  --comic-white: #FAF1DD;
+  --comic-ink: #1F1B16;
+  --comic-cyan: #1E8E9B;
+  --comic-green: #2E8540;
+  background-color: #F3E5C8 !important;
+  background-image: 
+    radial-gradient(rgba(45, 30, 15, 0.22) 13%, transparent 14%),
+    radial-gradient(rgba(45, 30, 15, 0.22) 13%, transparent 14%) !important;
+  background-size: 16px 16px !important;
+  background-position: 0 0, 8px 8px !important;
+  filter: sepia(0.24) contrast(1.05) saturate(0.88);
+}
+
+body.theme-vintage::before {
+  background: radial-gradient(circle at 50% 50%, rgba(221, 167, 38, 0.12), rgba(184, 40, 36, 0.08));
+}
+
+body.theme-vintage .comic-issue-bar {
+  background: #8F1F1C;
+}
+
+body.theme-vintage .comic-navbar {
+  background: #DDA726;
+}
+
+body.theme-vintage .portfolio-section {
+  background-color: #FAF1DD;
 }
 
 body::before {
@@ -151,8 +196,11 @@ button:active {
   gap: 10px;
 }
 
-.sound-toggle-btn {
+.sound-toggle-btn,
+.theme-toggle-btn {
   background: var(--comic-yellow);
+  color: var(--comic-ink);
+  cursor: pointer;
   border: 2px solid var(--comic-ink);
   box-shadow: 2px 2px 0 var(--comic-ink);
   font-size: 11px;
@@ -161,6 +209,25 @@ button:active {
   display: flex;
   align-items: center;
   gap: 4px;
+  transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.15s ease;
+}
+
+body.theme-vintage .sound-toggle-btn,
+body.theme-vintage .theme-toggle-btn {
+  background: var(--comic-white);
+  color: var(--comic-ink);
+}
+
+.sound-toggle-btn:hover,
+.theme-toggle-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--comic-ink);
+}
+
+.sound-toggle-btn:active,
+.theme-toggle-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--comic-ink);
 }
 
 /* ==========================================================================
@@ -1159,6 +1226,69 @@ textarea.form-control {
   resize: vertical;
 }
 
+.contact-status-note {
+  margin-top: 14px;
+  background: var(--comic-ink);
+  border: 2px dashed var(--comic-yellow);
+  padding: 12px 14px;
+  border-radius: 4px;
+  color: var(--comic-white);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+}
+
+.contact-status-note a {
+  color: var(--comic-yellow);
+  text-decoration: underline;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+/* ==========================================================================
+   INTERACTIVE COMIC ACTION WORDS (POW! / BAM! / ZAP! / THWIP!)
+   ========================================================================== */
+.comic-action-pop {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999999 !important;
+  font-family: var(--font-title);
+  font-size: 26px;
+  letter-spacing: 2px;
+  padding: 3px 12px;
+  border: 3px solid var(--comic-ink);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 var(--comic-ink);
+  text-transform: uppercase;
+  user-select: none;
+  -webkit-user-select: none;
+  transform: translate(-50%, -50%) rotate(var(--rot, -6deg)) scale(0.6);
+  animation: comicWordPopAnim 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes comicWordPopAnim {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--rot, -6deg)) scale(0.4);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--rot, -6deg)) scale(1.15);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(-50%, -85%) rotate(var(--rot, -6deg)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -130%) rotate(var(--rot, -6deg)) scale(0.8);
+  }
+}
+
 /* ==========================================================================
    MODAL DOSSIER
    ========================================================================== */
@@ -1725,7 +1855,7 @@ textarea.form-control {
 }
 
 /* ==========================================================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN (OPTIMIZED FOR MOBILE PHONES & TABLETS)
    ========================================================================== */
 @media (max-width: 900px) {
   .hero-panels-grid,
@@ -1738,7 +1868,7 @@ textarea.form-control {
   
   .spidey-crawler {
     transform-origin: 82px 4px;
-    scale: 0.85;
+    scale: 0.82;
   }
 
   .spidey-crawler.spidey-on-left .spidey-speech-bubble {
@@ -1754,38 +1884,132 @@ textarea.form-control {
     font-size: 15px;
     padding: 5px 10px;
   }
+
+  .education-comic-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {
   .comic-issue-bar {
     font-size: 10px;
-    padding: 4px 10px;
+    padding: 6px 10px;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .issue-badge-group {
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .issue-edition-text {
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .issue-controls {
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .comic-navbar {
+    padding: 8px 12px;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .nav-brand {
+    justify-content: center;
   }
 
   .brand-name {
-    font-size: 18px;
+    font-size: 20px;
+  }
+
+  .nav-links {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .nav-item button {
+    font-size: 13px;
+    padding: 5px 10px;
+  }
+
+  .main-wrapper {
+    padding: 20px 10px 80px 10px;
   }
 
   .big-role-text {
-    font-size: 44px;
-    -webkit-text-stroke: 2.5px var(--comic-ink);
+    font-size: clamp(34px, 10vw, 48px);
+    -webkit-text-stroke: 2px var(--comic-ink);
   }
 
   .name-banner {
-    font-size: 26px;
-    padding: 4px 16px;
+    font-size: 24px;
+    padding: 4px 14px;
+  }
+
+  .section-main-title {
+    font-size: clamp(28px, 8vw, 42px);
   }
 
   .hero-stats-row {
     grid-template-columns: 1fr;
   }
 
-  .projects-comic-grid {
+  .education-comic-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 
-  .nav-item button {
+  .edu-content {
+    padding: 16px;
+  }
+
+  .edu-degree-title {
+    font-size: 20px;
+  }
+
+  .edu-card-stamp {
     font-size: 12px;
-    padding: 4px 6px;
+    padding: 2px 8px;
+  }
+
+  /* Prevent iOS automatic zoom on form input focus */
+  .form-control,
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  .contact-info-panel,
+  .contact-form-panel {
+    padding: 18px 14px;
+  }
+
+  .contact-link-pill {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  /* Spider-Man mobile scaling and placement */
+  .spidey-crawler {
+    transform-origin: 82px 4px;
+    scale: 0.62;
+  }
+
+  .spidey-crawler.spidey-on-left .spidey-speech-bubble,
+  .spidey-crawler.spidey-on-right .spidey-speech-bubble {
+    width: 140px;
+    font-size: 11px;
+    padding: 5px 8px;
   }
 }

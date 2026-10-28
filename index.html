@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Agam Makhija | Python & AI Portfolio</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.1">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕷️</text></svg>">
 </head>
 <body>
@@ -22,6 +22,9 @@
       </div>
     </div>
     <div class="issue-controls">
+      <button class="sound-toggle-btn theme-toggle-btn" id="theme-toggle" title="Toggle Comic Theme Era">
+        <span>📰</span> ERA: MODERN
+      </button>
       <button class="sound-toggle-btn" id="sound-toggle" title="Toggle Comic Sound Effects">
         <span>🔊</span> SFX: ON
       </button>
@@ -520,6 +523,7 @@
             <button type="submit" class="btn-comic-primary" style="width: 100%; justify-content: center; font-size: 24px; padding: 14px;">
               <span>⚡ SEND MESSAGE</span>
             </button>
+            <div id="contact-status-note" class="contact-status-note" style="display:none;"></div>
           </form>
         </div>
 
@@ -539,8 +543,8 @@
   </footer>
 
   <!-- Scripts in dependency order -->
-  <script src="audio.js"></script>
-  <script src="spiderman.js"></script>
-  <script src="app.js"></script>
+  <script src="audio.js?v=2.1"></script>
+  <script src="spiderman.js?v=2.1"></script>
+  <script src="app.js?v=2.1"></script>
 </body>
 </html>

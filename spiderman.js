@@ -169,15 +169,26 @@ class SpiderManController {
       this.targetScroll = window.scrollY;
     }, { passive: true });
 
-    this.crawlerEl.addEventListener('click', () => {
+    this.crawlerEl.addEventListener('click', (e) => {
       if (this.isTransitioning || this.isLanding || this.isTakingFlight) return;
       if (window.comicAudio) window.comicAudio.playThwip();
+      
+      const quotes = [
+        "With great Python scripts comes great exception handling!",
+        "Rule #1 of Prompting: Always give your LLM clear examples!",
+        "Spider-Sense is tingling... someone pushed directly to main!",
+        "Don't worry, my webs caught the production server!",
+        "I can stick to walls, but I can't escape recursive loops!",
+        "Did someone say Python? Let's automate this whole universe!",
+        "THWIP! Click any tab to watch me swing and pull the page!",
+        "Standing by! Drop Agam an email message below!"
+      ];
+
       if (this.isOnFloor) {
-        this.showBubble("Standing at the base! Ready to connect!", 3000);
-      } else if (this.currentSide === 'left') {
-        this.showBubble("THWIP! Click any tab to see me swing back and pull the page!", 3000);
+        this.showBubble("Superhero landing! Send Agam an email below!", 3200);
       } else {
-        this.showBubble("THWIP! Click any tab to see me pull the page to the right!", 3000);
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        this.showBubble(randomQuote, 3200);
       }
       this.triggerWebBounce();
     });
@@ -485,11 +496,15 @@ class SpiderManController {
   }
 
   getSideX(side, viewportWidth) {
-    const gutter = viewportWidth > 768 ? Math.max(20, viewportWidth * 0.04) : 8;
+    const isMobile = viewportWidth <= 600;
+    const isTablet = viewportWidth <= 900;
+    const scale = isMobile ? 0.62 : (isTablet ? 0.82 : 1.0);
+    const effectiveWidth = this.spideyWidth * scale;
+    const gutter = isMobile ? 4 : (viewportWidth > 768 ? Math.max(20, viewportWidth * 0.04) : 8);
     if (side === 'left') {
       return gutter;
     } else {
-      return viewportWidth - gutter - this.spideyWidth;
+      return viewportWidth - gutter - effectiveWidth;
     }
   }
 
