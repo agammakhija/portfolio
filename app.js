@@ -226,6 +226,11 @@ class PortfolioApp {
       document.documentElement.classList.add('theme-vintage');
       document.body.classList.add('theme-vintage');
       this.themeToggleBtn.innerHTML = `<span>📰</span> ERA: 1960s`;
+      setTimeout(() => {
+        if (window.spidermanController) {
+          window.spidermanController.setThemeEra(true);
+        }
+      }, 50);
     } else {
       this.themeToggleBtn.innerHTML = `<span>✨</span> ERA: MODERN`;
     }
@@ -239,13 +244,15 @@ class PortfolioApp {
         ? `<span>📰</span> ERA: 1960s` 
         : `<span>✨</span> ERA: MODERN`;
 
-      if (window.comicAudio) window.comicAudio.playClick();
       if (window.spidermanController) {
+        window.spidermanController.setThemeEra(isVintage);
         window.spidermanController.showBubble(
-          isVintage ? "Entering the 1960s Golden Age!" : "Back to Modern High-Gloss comics!",
-          2600
+          isVintage ? "Face it, Tiger! 1962 Steve Ditko Silver Age activated!" : "Back to Modern High-Gloss comics!",
+          3000
         );
       }
+
+      if (window.comicAudio) window.comicAudio.playClick();
     });
   }
 

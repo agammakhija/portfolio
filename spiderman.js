@@ -89,6 +89,10 @@ class SpiderManController {
   }
 
   setupDOM() {
+    const isVintage = document.body.classList.contains('theme-vintage') || localStorage.getItem('comic-theme-era') === 'vintage';
+    const hangSrc = isVintage ? 'spiderman-hanging-vintage.png' : 'spiderman-hanging.png';
+    const standSrc = isVintage ? 'spiderman-standing-vintage.png' : 'spiderman-standing.png';
+
     const wrapper = document.createElement('div');
     wrapper.id = 'spidey-container';
     wrapper.innerHTML = `
@@ -102,7 +106,7 @@ class SpiderManController {
         <div class="spidey-body-wrapper" id="spidey-body-wrapper">
           <!-- Hanging Sprite (Upside Down) -->
           <img 
-            src="spiderman-hanging.png" 
+            src="${hangSrc}" 
             alt="Spider-Man Hanging Upside Down" 
             id="spidey-hang-img"
             class="spidey-hang-img"
@@ -110,7 +114,7 @@ class SpiderManController {
           />
           <!-- Standing Sprite (Normal Feet on Floor) -->
           <img 
-            src="spiderman-standing.png" 
+            src="${standSrc}" 
             alt="Spider-Man Standing Normally" 
             id="spidey-stand-img"
             class="spidey-stand-img"
@@ -164,6 +168,17 @@ class SpiderManController {
     this.webCanvas.height = window.innerHeight;
   }
 
+  setThemeEra(isVintage) {
+    const hangImg = document.getElementById('spidey-hang-img');
+    const standImg = document.getElementById('spidey-stand-img');
+    if (hangImg) {
+      hangImg.src = isVintage ? 'spiderman-hanging-vintage.png' : 'spiderman-hanging.png';
+    }
+    if (standImg) {
+      standImg.src = isVintage ? 'spiderman-standing-vintage.png' : 'spiderman-standing.png';
+    }
+  }
+
   bindEvents() {
     window.addEventListener('scroll', () => {
       this.targetScroll = window.scrollY;
@@ -173,7 +188,8 @@ class SpiderManController {
       if (this.isTransitioning || this.isLanding || this.isTakingFlight) return;
       if (window.comicAudio) window.comicAudio.playThwip();
       
-      const quotes = [
+      const isVintage = document.body.classList.contains('theme-vintage');
+      const modernQuotes = [
         "With great Python scripts comes great exception handling!",
         "Rule #1 of Prompting: Always give your LLM clear examples!",
         "Spider-Sense is tingling... someone pushed directly to main!",
@@ -183,9 +199,21 @@ class SpiderManController {
         "THWIP! Click any tab to watch me swing and pull the page!",
         "Standing by! Drop Agam an email message below!"
       ];
+      const vintageQuotes = [
+        "With great power there must also come great responsibility! (Amazing Fantasy #15, 1962)",
+        "Face it, Tiger, you just hit the jackpot! (Classic 1960s Edition)",
+        "Stan Lee & Steve Ditko drew me this way back in '62!",
+        "Look out, here comes the Spider-Man! Direct from the Silver Age!",
+        "Leapin' lizards! Now that's what I call a genuine vintage comic!",
+        "THWIP! Swinging through the original 1960s comic strip!"
+      ];
+      const quotes = isVintage ? vintageQuotes : modernQuotes;
 
       if (this.isOnFloor) {
-        this.showBubble("Superhero landing! Send Agam an email below!", 3200);
+        this.showBubble(
+          isVintage ? "Superhero landing! Send Agam a dispatch below!" : "Superhero landing! Send Agam an email below!",
+          3200
+        );
       } else {
         const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
         this.showBubble(randomQuote, 3200);
@@ -541,9 +569,11 @@ class SpiderManController {
 
       ctx.save();
 
+      const isVintage = document.body.classList.contains('theme-vintage');
+
       // Shadow
       ctx.lineWidth = 3.5;
-      ctx.strokeStyle = 'rgba(17, 17, 17, 0.4)';
+      ctx.strokeStyle = isVintage ? 'rgba(31, 27, 22, 0.75)' : 'rgba(17, 17, 17, 0.4)';
       ctx.beginPath();
       ctx.moveTo(anchorX + 2, anchorY);
       ctx.quadraticCurveTo(controlX + 2, controlY, targetX + 2, targetY);
@@ -551,7 +581,7 @@ class SpiderManController {
 
       // Main silk strand
       ctx.lineWidth = 2.8;
-      ctx.strokeStyle = '#FFFFFF';
+      ctx.strokeStyle = isVintage ? '#F3E5C8' : '#FFFFFF';
       ctx.beginPath();
       ctx.moveTo(anchorX, anchorY);
       ctx.quadraticCurveTo(controlX, controlY, targetX, targetY);
@@ -559,7 +589,7 @@ class SpiderManController {
 
       // Spiral knots
       ctx.lineWidth = 1.2;
-      ctx.strokeStyle = '#D8EDFA';
+      ctx.strokeStyle = isVintage ? '#DDA726' : '#D8EDFA';
       const totalDist = Math.hypot(targetX - anchorX, targetY - anchorY);
       const knots = Math.max(3, Math.floor(totalDist / 20));
       for (let i = 1; i < knots; i++) {

@@ -79,7 +79,6 @@ body.theme-vintage {
     radial-gradient(rgba(45, 30, 15, 0.22) 13%, transparent 14%) !important;
   background-size: 16px 16px !important;
   background-position: 0 0, 8px 8px !important;
-  filter: sepia(0.24) contrast(1.05) saturate(0.88);
 }
 
 body.theme-vintage::before {
@@ -94,8 +93,21 @@ body.theme-vintage .comic-navbar {
   background: #DDA726;
 }
 
-body.theme-vintage .portfolio-section {
-  background-color: #FAF1DD;
+/* Authentic Traditional Steve Ditko 1962 Spider-Man Styling */
+body.theme-vintage .spidey-hang-img,
+body.theme-vintage .spidey-stand-img {
+  filter: contrast(1.15) brightness(0.92) hue-rotate(-10deg) saturate(1.1) drop-shadow(6px 8px 0px rgba(31, 27, 22, 0.95));
+}
+
+body.theme-vintage .spidey-speech-bubble {
+  background: #FFF5D6;
+  border-color: #1F1B16;
+  box-shadow: 3px 3px 0 #1F1B16;
+  color: #1F1B16;
+}
+
+body.theme-vintage .spidey-speech-bubble::after {
+  border-top-color: #FFF5D6;
 }
 
 body::before {
