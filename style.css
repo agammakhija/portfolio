@@ -267,7 +267,8 @@ button:active {
   padding: 40px 24px 100px 24px;
   position: relative;
   z-index: 10;
-  will-change: transform;
+  will-change: transform, opacity;
+  opacity: 1;
 }
 
 .portfolio-section {
@@ -1373,7 +1374,8 @@ textarea.form-control {
 }
 
 /* Floor landing impact */
-.spidey-crawler.floor-landing .spidey-hang-img {
+.spidey-crawler.floor-landing .spidey-hang-img,
+.spidey-crawler.floor-landing .spidey-stand-img {
   animation: spideyFloorImpact 0.36s ease-out;
 }
 

@@ -911,8 +911,15 @@ class SpiderManController {
       requestAnimationFrame(pullStep);
     });
 
-    // PHASE 4: IMPACT "BAM!" & SILENT SECTION SWITCH BEHIND RED BACKDROP
+    // PHASE 4: IMPACT "BAM!" & SILENT RESET BEHIND RED BACKDROP
     if (window.comicAudio) window.comicAudio.playImpact();
+
+    // HIDE MAIN WRAPPER COMPLETELY so no text can appear over the red background!
+    if (mainWrapper) {
+      mainWrapper.style.transition = 'none';
+      mainWrapper.style.opacity = '0';
+      mainWrapper.style.transform = '';
+    }
 
     // Smoothly fade out the pull web line (160ms)
     const fadeStartTime = performance.now();
@@ -939,7 +946,7 @@ class SpiderManController {
       requestAnimationFrame(fadeStep);
     });
 
-    // Instant scroll to target section (completely concealed by red backdrop)
+    // Instant scroll to target section while mainWrapper is hidden (opacity: 0)
     const targetEl = document.getElementById(`section-${targetSectionId}`);
     if (targetEl) {
       targetEl.scrollIntoView({ behavior: 'instant', block: 'start' });
@@ -957,21 +964,33 @@ class SpiderManController {
     this.slideVelocity = 0;
     this.updatePosition();
 
-    // Reset mainWrapper cleanly behind the opaque backdrop
-    if (mainWrapper) {
-      mainWrapper.style.transform = '';
-    }
+    // Pause to let the user absorb the red backdrop comic announcement
+    await this.wait(450);
 
-    // Smooth pause to let the cinematic comic title fade in slowly (480ms)
-    await this.wait(480);
-
-    // PHASE 5: SMOOTHLY UNVEIL THE TARGET SECTION
+    // PHASE 5: FADE OUT THE RED BACKDROP FIRST!
     if (backdrop) {
       backdrop.classList.remove('active');
     }
 
-    // Wait for backdrop fade transition (360ms)
+    // Wait until the red background has completely disappeared (360ms)
     await this.wait(360);
+
+    // PHASE 6: NOW AND ONLY NOW, REVEAL THE NEW SECTION TEXT AFTER BACKGROUND IS GONE!
+    if (mainWrapper) {
+      mainWrapper.style.transform = 'translateY(16px)';
+      mainWrapper.style.transition = 'opacity 0.45s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)';
+      void mainWrapper.offsetWidth; // Force layout recalculation
+      mainWrapper.style.opacity = '1';
+      mainWrapper.style.transform = 'translateY(0)';
+    }
+
+    // Wait for text fade-in
+    await this.wait(460);
+
+    if (mainWrapper) {
+      mainWrapper.style.transform = '';
+      mainWrapper.style.transition = '';
+    }
 
     // Settle bounce on the web line & welcome speech bubble
     this.updatePosition();
