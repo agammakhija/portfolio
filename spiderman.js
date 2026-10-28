@@ -71,6 +71,11 @@ class SpiderManController {
     this.swingTimer = null;
     this.SWING_INTERVAL = 30000; // 30 seconds
 
+    // Floor Landing State (When approaching yellow footer / floor)
+    this.isOnFloor = false;
+    this.isLanding = false;
+    this.isTakingFlight = false;
+
     this.init();
   }
 
@@ -155,9 +160,11 @@ class SpiderManController {
     }, { passive: true });
 
     this.crawlerEl.addEventListener('click', () => {
-      if (this.isTransitioning) return;
+      if (this.isTransitioning || this.isLanding || this.isTakingFlight) return;
       if (window.comicAudio) window.comicAudio.playThwip();
-      if (this.currentSide === 'left') {
+      if (this.isOnFloor) {
+        this.showBubble("Standing at the base! Ready to connect!", 3000);
+      } else if (this.currentSide === 'left') {
         this.showBubble("THWIP! Click any tab to see me swing back and pull the page!", 3000);
       } else {
         this.showBubble("THWIP! Click any tab to see me pull the page to the right!", 3000);
@@ -219,8 +226,8 @@ class SpiderManController {
   }
 
   async triggerPeriodicSwing() {
-    // If user is currently running a transition, postpone swing
-    if (this.isTransitioning || document.hidden) {
+    // If user is currently running a transition or standing on the floor, postpone swing
+    if (this.isTransitioning || this.isOnFloor || this.isLanding || this.isTakingFlight || document.hidden) {
       this.startSwingTimer();
       return;
     }
@@ -341,6 +348,132 @@ class SpiderManController {
     this.updatePosition();
   }
 
+  /**
+   * Floor Landing Mechanic:
+   * When approaching the contact / footer floor, Spider-Man lets go of the web,
+   * flips 180 degrees upright, and lands right onto the black line before the yellow footer!
+   */
+  async landOnFloor() {
+    if (this.isOnFloor || this.isLanding || this.isTakingFlight || this.isTransitioning) return;
+    this.isLanding = true;
+
+    if (window.comicAudio) window.comicAudio.playWhoosh();
+
+    // Flip body to stand upright on feet
+    this.crawlerEl.classList.add('spidey-on-floor');
+
+    const startY = this.spideyY;
+    const dropStartTime = performance.now();
+    const dropDuration = 260;
+
+    await new Promise(resolve => {
+      const dropStep = (now) => {
+        const elapsed = now - dropStartTime;
+        const p = Math.min(elapsed / dropDuration, 1);
+        const easeDrop = p * p; // Natural gravity drop acceleration
+
+        const footerEl = document.querySelector('.comic-footer');
+        const footerTop = footerEl ? footerEl.getBoundingClientRect().top : window.innerHeight;
+        const currentFloorY = footerTop - this.spideyHeight + 12;
+
+        this.spideyY = startY + (currentFloorY - startY) * easeDrop;
+        if (this.crawlerEl) {
+          this.crawlerEl.style.transform = `translate3d(${this.spideyX}px, ${this.spideyY}px, 0)`;
+        }
+
+        if (p < 1) {
+          requestAnimationFrame(dropStep);
+        } else {
+          this.spideyY = currentFloorY;
+          resolve();
+        }
+      };
+      requestAnimationFrame(dropStep);
+    });
+
+    // Impact thud upon landing on the black line!
+    if (window.comicAudio) window.comicAudio.playImpact();
+    this.crawlerEl.classList.add('floor-landing');
+    setTimeout(() => this.crawlerEl.classList.remove('floor-landing'), 380);
+
+    // Emit landing comic dust particles from feet
+    this.emitLandingParticles(this.spideyX + this.spideyWidth / 2, this.spideyY + this.spideyHeight);
+
+    this.isOnFloor = true;
+    this.isLanding = false;
+
+    this.showBubble("Superhero landing! Send me a message below!", 2800);
+  }
+
+  /**
+   * Take Flight from Floor:
+   * When user scrolls back up, Spider-Man shoots a web up to the ceiling,
+   * flips back into his upside-down pose, and catches the web line!
+   */
+  async takeFlightFromFloor() {
+    if (!this.isOnFloor || this.isLanding || this.isTakingFlight) return;
+    this.isTakingFlight = true;
+
+    // 1. Spider-Man shoots web to ceiling to catch it!
+    if (window.comicAudio) window.comicAudio.playThwip();
+    this.showBubble("THWIP! Catching the web line!", 2000);
+
+    // Flip body back to upside-down hanging pose
+    this.crawlerEl.classList.remove('spidey-on-floor');
+    this.crawlerEl.classList.add('floor-takeoff');
+    setTimeout(() => this.crawlerEl.classList.remove('floor-takeoff'), 350);
+
+    const startY = this.spideyY;
+    const zipStartTime = performance.now();
+    const zipDuration = 300;
+
+    await new Promise(resolve => {
+      const zipStep = (now) => {
+        const elapsed = now - zipStartTime;
+        const p = Math.min(elapsed / zipDuration, 1);
+        const easeZip = 1 - Math.pow(1 - p, 3); // Decelerating zip up
+
+        const viewportHeight = window.innerHeight;
+        const minY = 35;
+        const maxY = viewportHeight - this.spideyHeight - 50;
+        const targetHangingY = minY + (maxY - minY) * this.scrollProgress;
+
+        this.spideyY = startY + (targetHangingY - startY) * easeZip;
+        if (this.crawlerEl) {
+          this.crawlerEl.style.transform = `translate3d(${this.spideyX}px, ${this.spideyY}px, 0)`;
+        }
+
+        if (p < 1) {
+          requestAnimationFrame(zipStep);
+        } else {
+          resolve();
+        }
+      };
+      requestAnimationFrame(zipStep);
+    });
+
+    if (window.comicAudio) window.comicAudio.playWhoosh();
+    this.isOnFloor = false;
+    this.isTakingFlight = false;
+
+    // Catch the web line with settle bounce
+    this.triggerWebBounce();
+  }
+
+  emitLandingParticles(centerX, bottomY) {
+    for (let i = 0; i < 14; i++) {
+      this.particles.push({
+        x: centerX + (Math.random() - 0.5) * 40,
+        y: bottomY - 6,
+        vx: (Math.random() - 0.5) * 7,
+        vy: -Math.random() * 3.5 - 1.5,
+        life: 1,
+        size: Math.random() * 3 + 2,
+        color: Math.random() > 0.4 ? '#FFDE00' : '#FFFFFF'
+      });
+    }
+  }
+
   getSideX(side, viewportWidth) {
     const gutter = viewportWidth > 768 ? Math.max(20, viewportWidth * 0.04) : 8;
     if (side === 'left') {
@@ -356,72 +489,76 @@ class SpiderManController {
     ctx.clearRect(0, 0, this.webCanvas.width, this.webCanvas.height);
 
     // 1. VERTICAL HANGING OR ACROBATIC SWINGING WEB STRAND
-    let anchorX, anchorY, targetX, targetY, controlX, controlY;
+    // If Spider-Man is on the floor, he has released the hanging web!
+    if (!this.isOnFloor && !this.isLanding) {
+      let anchorX, anchorY, targetX, targetY, controlX, controlY;
 
-    if (this.isSwinging && this.swingState) {
-      // Connect to ceiling anchor above destination during swing
-      anchorX = this.swingState.ceilingAnchorX;
-      anchorY = 0;
-      targetX = spideyScreenX + this.webAnchorOffsetX;
-      targetY = spideyScreenY + 4;
+      if (this.isSwinging && this.swingState) {
+        // Connect to ceiling anchor above destination during swing
+        anchorX = this.swingState.ceilingAnchorX;
+        anchorY = 0;
+        targetX = spideyScreenX + this.webAnchorOffsetX;
+        targetY = spideyScreenY + 4;
 
-      // Aerodynamic curve in web line as it cuts through the air
-      const dragLag = -this.swingState.direction * Math.sin(this.swingState.progress * Math.PI) * 25;
-      controlX = (anchorX + targetX) / 2 + dragLag;
-      controlY = (anchorY + targetY) / 2 + 10;
-    } else {
-      // Resting vertical hanging strand
-      anchorX = spideyScreenX + this.webAnchorOffsetX + swayOffset;
-      anchorY = 0;
-      targetX = spideyScreenX + this.webAnchorOffsetX + swayOffset;
-      targetY = spideyScreenY + 4;
-      controlX = anchorX + swayOffset * 0.35;
-      controlY = targetY / 2;
-    }
-
-    ctx.save();
-
-    // Shadow
-    ctx.lineWidth = 3.5;
-    ctx.strokeStyle = 'rgba(17, 17, 17, 0.4)';
-    ctx.beginPath();
-    ctx.moveTo(anchorX + 2, anchorY);
-    ctx.quadraticCurveTo(controlX + 2, controlY, targetX + 2, targetY);
-    ctx.stroke();
-
-    // Main silk strand
-    ctx.lineWidth = 2.8;
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.beginPath();
-    ctx.moveTo(anchorX, anchorY);
-    ctx.quadraticCurveTo(controlX, controlY, targetX, targetY);
-    ctx.stroke();
-
-    // Spiral knots
-    ctx.lineWidth = 1.2;
-    ctx.strokeStyle = '#D8EDFA';
-    const totalDist = Math.hypot(targetX - anchorX, targetY - anchorY);
-    const knots = Math.max(3, Math.floor(totalDist / 20));
-    for (let i = 1; i < knots; i++) {
-      const frac = i / knots;
-      const ky = anchorY + (targetY - anchorY) * frac;
-      const kx = anchorX + (targetX - anchorX) * frac + Math.sin(i * 0.9 + Date.now() * 0.004) * 1.8;
-      ctx.beginPath();
-      ctx.arc(kx, ky, 2.2, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
-    // Friction / Wind particles
-    if (this.isSwinging) {
-      if (Math.random() > 0.4) {
-        this.emitFrictionParticles(targetX, targetY);
+        // Aerodynamic curve in web line as it cuts through the air
+        const dragLag = -this.swingState.direction * Math.sin(this.swingState.progress * Math.PI) * 25;
+        controlX = (anchorX + targetX) / 2 + dragLag;
+        controlY = (anchorY + targetY) / 2 + 10;
+      } else {
+        // Resting vertical hanging strand
+        anchorX = spideyScreenX + this.webAnchorOffsetX + swayOffset;
+        anchorY = 0;
+        targetX = spideyScreenX + this.webAnchorOffsetX + swayOffset;
+        targetY = spideyScreenY + 4;
+        controlX = anchorX + swayOffset * 0.35;
+        controlY = targetY / 2;
       }
-    } else if (Math.abs(this.slideVelocity) > 0.8 && !this.isTransitioning) {
-      this.emitFrictionParticles(anchorX, targetY + 30);
-    }
-    this.renderParticles(ctx);
 
-    ctx.restore();
+      ctx.save();
+
+      // Shadow
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = 'rgba(17, 17, 17, 0.4)';
+      ctx.beginPath();
+      ctx.moveTo(anchorX + 2, anchorY);
+      ctx.quadraticCurveTo(controlX + 2, controlY, targetX + 2, targetY);
+      ctx.stroke();
+
+      // Main silk strand
+      ctx.lineWidth = 2.8;
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.moveTo(anchorX, anchorY);
+      ctx.quadraticCurveTo(controlX, controlY, targetX, targetY);
+      ctx.stroke();
+
+      // Spiral knots
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = '#D8EDFA';
+      const totalDist = Math.hypot(targetX - anchorX, targetY - anchorY);
+      const knots = Math.max(3, Math.floor(totalDist / 20));
+      for (let i = 1; i < knots; i++) {
+        const frac = i / knots;
+        const ky = anchorY + (targetY - anchorY) * frac;
+        const kx = anchorX + (targetX - anchorX) * frac + Math.sin(i * 0.9 + Date.now() * 0.004) * 1.8;
+        ctx.beginPath();
+        ctx.arc(kx, ky, 2.2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Friction / Wind particles
+      if (this.isSwinging) {
+        if (Math.random() > 0.4) {
+          this.emitFrictionParticles(targetX, targetY);
+        }
+      } else if (Math.abs(this.slideVelocity) > 0.8 && !this.isTransitioning) {
+        this.emitFrictionParticles(anchorX, targetY + 30);
+      }
+
+      ctx.restore();
+    }
+
+    this.renderParticles(ctx);
 
     // 2. DYNAMIC PULL WEB LINE (From free hand to screen splat)
     if (this.pullWeb.active) {
@@ -559,6 +696,26 @@ class SpiderManController {
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
 
+    // Check floor position (the black line at the top of the yellow footer)
+    const footerEl = document.querySelector('.comic-footer');
+    let footerTop = Infinity;
+    if (footerEl) {
+      footerTop = footerEl.getBoundingClientRect().top;
+    }
+
+    const floorStandingY = footerTop - this.spideyHeight + 12;
+    const isNearFloor = footerTop <= viewportHeight - 15;
+    const isFarFromFloor = footerTop > viewportHeight + 50;
+
+    // Trigger floor landing or takeoff if not currently transitioning
+    if (!this.isTransitioning && !this.isLanding && !this.isTakingFlight) {
+      if (isNearFloor && !this.isOnFloor) {
+        this.landOnFloor();
+      } else if (isFarFromFloor && this.isOnFloor) {
+        this.takeFlightFromFloor();
+      }
+    }
+
     // Continuous sliding down the viewport as user scrolls
     const minY = 35;
     const maxY = viewportHeight - this.spideyHeight - 50;
@@ -568,7 +725,15 @@ class SpiderManController {
     const sway = Math.sin(Date.now() * 0.002) * 6;
     const scrollTilt = Math.max(Math.min(this.slideVelocity * 0.3, 5), -5);
 
-    if (this.isSwinging && this.swingState) {
+    if (this.isLanding || this.isTakingFlight) {
+      currentX = this.spideyX;
+      currentY = this.spideyY;
+      tiltAngle = 0;
+    } else if (this.isOnFloor) {
+      currentX = this.getSideX(this.currentSide, viewportWidth);
+      currentY = floorStandingY;
+      tiltAngle = 0; // Standing upright on the floor
+    } else if (this.isSwinging && this.swingState) {
       currentX = this.swingState.currentX;
       currentY = baseCurrentY + this.swingState.dip;
       tiltAngle = this.swingState.tilt + scrollTilt;
@@ -582,11 +747,11 @@ class SpiderManController {
     this.spideyY = currentY;
 
     if (this.crawlerEl) {
-      const renderX = this.isSwinging ? currentX : (currentX + sway);
+      const renderX = (this.isSwinging || this.isOnFloor || this.isLanding) ? currentX : (currentX + sway);
       this.crawlerEl.style.transform = `translate3d(${renderX}px, ${currentY}px, 0) rotate(${tiltAngle}deg)`;
     }
 
-    this.drawWebCanvas(currentX, currentY, sway);
+    this.drawWebCanvas(currentX, currentY, (this.isOnFloor ? 0 : sway));
   }
 
   /**
@@ -611,6 +776,12 @@ class SpiderManController {
 
     // Clear periodic swing timer so Spider-Man stays dedicated to this transition
     this.clearSwingTimer();
+
+    // If standing on the floor, take flight and catch the web first!
+    if (this.isOnFloor) {
+      await this.takeFlightFromFloor();
+      await this.wait(100);
+    }
 
     // 1. MANDATORY: Guarantee Spider-Man is back on the right side first!
     if (this.currentSide !== 'right' || this.isSwinging) {
