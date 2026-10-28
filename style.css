@@ -267,14 +267,7 @@ button:active {
   padding: 40px 24px 100px 24px;
   position: relative;
   z-index: 10;
-  transition: transform 0.65s cubic-bezier(0.22, 0.95, 0.3, 1);
   will-change: transform;
-}
-
-/* Spider-Man pulling the page to the RIGHT (slower, cinematic sweep) */
-.main-wrapper.pull-page-right {
-  transform: translateX(115vw) rotate(1.8deg) scale(0.98);
-  transition: transform 0.65s cubic-bezier(0.22, 0.95, 0.3, 1);
 }
 
 .portfolio-section {
@@ -1347,13 +1340,13 @@ textarea.form-control {
   opacity: 0;
   pointer-events: none;
   z-index: 5100;
-  transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.15s ease;
+  will-change: transform, left, opacity;
+  transition: opacity 0.18s ease;
 }
 
 .screen-pull-splat.splat-active {
-  transform: translate(-50%, -50%) scale(1);
   opacity: 1;
-  animation: splatWobble 0.35s ease-out;
+  animation: splatWobble 0.28s ease-out forwards;
 }
 
 .pull-splat-svg {
@@ -1364,7 +1357,7 @@ textarea.form-control {
 
 @keyframes splatWobble {
   0% { transform: translate(-50%, -50%) scale(0.2) rotate(-15deg); }
-  65% { transform: translate(-50%, -50%) scale(1.18) rotate(5deg); }
+  65% { transform: translate(-50%, -50%) scale(1.15) rotate(4deg); }
   100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
 }
 
@@ -1390,7 +1383,7 @@ textarea.form-control {
   opacity: 0;
   pointer-events: none;
   overflow: hidden;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.35s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .transition-red-backdrop.active {
@@ -1399,18 +1392,23 @@ textarea.form-control {
 
 .backdrop-rays {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background: repeating-conic-gradient(
     from 0deg,
     transparent 0deg 6deg,
     rgba(255, 255, 255, 0.08) 6deg 10deg,
     transparent 10deg 18deg
   );
-  animation: speedSpin 0.4s linear infinite;
+  animation: speedSpin 16s linear infinite;
   pointer-events: none;
+}
+
+@keyframes speedSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .backdrop-banner {
@@ -1421,8 +1419,13 @@ textarea.form-control {
   background: rgba(17, 17, 17, 0.88);
   border: var(--border-extra);
   box-shadow: var(--shadow-comic-lg);
-  transform: rotate(-1.5deg);
+  transform: rotate(-1.5deg) scale(0.96);
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   max-width: 90vw;
+}
+
+.transition-red-backdrop.active .backdrop-banner {
+  transform: rotate(-1.5deg) scale(1);
 }
 
 .backdrop-tag {

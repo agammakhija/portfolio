@@ -43,6 +43,7 @@ class SpiderManController {
     // Pull Animation Web Line State
     this.pullWeb = {
       active: false,
+      opacity: 1.0,
       startX: 0,
       startY: 0,
       targetX: 0,
@@ -424,6 +425,9 @@ class SpiderManController {
 
     // 2. DYNAMIC PULL WEB LINE (From free hand to screen splat)
     if (this.pullWeb.active) {
+      const alpha = this.pullWeb.opacity !== undefined ? this.pullWeb.opacity : 1.0;
+      if (alpha <= 0.001) return;
+
       const handX = spideyScreenX + this.freeHandOffsetX + swayOffset;
       const handY = spideyScreenY + this.freeHandOffsetY;
 
@@ -434,6 +438,8 @@ class SpiderManController {
       const tensionVibe = Math.sin(Date.now() * 0.05) * this.pullWeb.tension * 8;
 
       ctx.save();
+      ctx.globalAlpha = alpha;
+
       // Drop shadow
       ctx.lineWidth = 6;
       ctx.strokeStyle = '#111111';
@@ -584,28 +590,32 @@ class SpiderManController {
   }
 
   /**
-   * THE EXACT TRANSITION REQUESTED:
-   * 1. Guarantees Spider-Man is back on the RIGHT side no matter what
-   * 2. Shoots web from free hand onto a RANDOM non-center screen position (never covers central text!)
-   * 3. Web flies smoothly and deliberately (560ms) so user can clearly follow the projectile
-   * 4. Web splat attaches to screen glass
-   * 5. Spider-Man heaves & pulls with recoil towards the right
-   * 6. The pre-transition page physically gets pulled and smoothly slides to the RIGHT (0.65s)!
-   * 7. Behind it, vibrant red comic background is revealed with "NOW ENTERING: [SECTION]"
-   * 8. Impact "BAM!", scroll sets to target section, page resets smoothly into view
-   * 9. 30-second swing timer restarts fresh
+   * SILKY-SMOOTH CINEMATIC COMIC TRANSITION:
+   * 1. Guarantees Spider-Man returns swiftly to the RIGHT side first (if on left)
+   * 2. Fires smooth silk projectile to a random non-center screen glass location
+   * 3. Splat springs open on impact, locking the web line in place
+   * 4. Spider-Man heaves & pulls with continuous 60fps physics:
+   *    - Page smoothly accelerates to the right
+   *    - Splat moves with the page to the right
+   *    - Web line stays locked to the splat the entire time
+   *    - Vibrant red comic background is revealed underneath with target section banner
+   * 5. Impact "BAM!", silk dissolves smoothly
+   * 6. Silent scroll & transform reset behind the opaque red backdrop
+   * 7. Smooth backdrop dissolve (350ms) unveiling the new section in place
+   * 8. 30-second swing timer restarts fresh
    */
   async switchSection(targetSectionId, targetSectionTitle, onSwitchCallback) {
     if (this.isTransitioning) return;
 
     this.isTransitioning = true;
 
-    // Cancel/reset the 30s swing timer so he stays put during transition
+    // Clear periodic swing timer so Spider-Man stays dedicated to this transition
     this.clearSwingTimer();
 
-    // MANDATORY REQUIREMENT: Spider-Man MUST come back to the right side no matter what!
+    // 1. MANDATORY: Guarantee Spider-Man is back on the right side first!
     if (this.currentSide !== 'right' || this.isSwinging) {
       await this.returnToRightSideFast();
+      await this.wait(120); // Small natural settling breath
     }
 
     const splat = this.pullSplatEl;
@@ -621,26 +631,28 @@ class SpiderManController {
     const handY = this.spideyY + this.freeHandOffsetY;
 
     // RANDOM STRIKE POSITION AWAY FROM CENTER (Never covers central text!)
-    // Selects from peripheral zones around screen margins:
     const strikeZones = [
-      { xMin: 0.12, xMax: 0.28, yMin: 0.18, yMax: 0.32 }, // Upper-Left
-      { xMin: 0.08, xMax: 0.22, yMin: 0.44, yMax: 0.62 }, // Mid-Left
-      { xMin: 0.12, xMax: 0.28, yMin: 0.70, yMax: 0.85 }, // Lower-Left
-      { xMin: 0.62, xMax: 0.76, yMin: 0.16, yMax: 0.28 }, // Upper-Right
-      { xMin: 0.58, xMax: 0.74, yMin: 0.72, yMax: 0.85 }  // Lower-Right
+      { xMin: 0.12, xMax: 0.28, yMin: 0.20, yMax: 0.34 }, // Upper-Left
+      { xMin: 0.08, xMax: 0.22, yMin: 0.45, yMax: 0.60 }, // Mid-Left
+      { xMin: 0.12, xMax: 0.28, yMin: 0.70, yMax: 0.82 }, // Lower-Left
+      { xMin: 0.60, xMax: 0.74, yMin: 0.18, yMax: 0.30 }, // Upper-Right
+      { xMin: 0.56, xMax: 0.72, yMin: 0.70, yMax: 0.82 }  // Lower-Right
     ];
     const zone = strikeZones[Math.floor(Math.random() * strikeZones.length)];
     const screenTargetX = window.innerWidth * (zone.xMin + Math.random() * (zone.xMax - zone.xMin));
     const screenTargetY = window.innerHeight * (zone.yMin + Math.random() * (zone.yMax - zone.yMin));
 
-    // STEP 1: SPIDER-MAN SHOOTS WEB FROM FREE HAND ONTO SCREEN!
+    // PHASE 1: SPIDER-MAN SHOOTS WEB FROM FREE HAND ONTO SCREEN GLASS
     if (window.comicAudio) window.comicAudio.playThwip();
-    this.showBubble("THWIP! Got the page! Pulling it to the right!", 3000);
+    this.showBubble("THWIP! Got the page! Pulling it to the right!", 2800);
 
     splat.style.left = `${screenTargetX}px`;
     splat.style.top = `${screenTargetY}px`;
+    splat.style.opacity = '1';
+    splat.style.transform = 'translate(-50%, -50%) scale(0)';
 
     this.pullWeb.active = true;
+    this.pullWeb.opacity = 1.0;
     this.pullWeb.startX = handX;
     this.pullWeb.startY = handY;
     this.pullWeb.targetX = screenTargetX;
@@ -648,13 +660,13 @@ class SpiderManController {
     this.pullWeb.progress = 0;
     this.pullWeb.tension = 0;
 
-    // Shoot line slowly and deliberately (560ms) with smooth cubic ease-out
-    const startTime = performance.now();
-    const shootDuration = 560;
+    // Shoot line with smooth cubic deceleration (460ms)
+    const shootStartTime = performance.now();
+    const shootDuration = 460;
 
     await new Promise(resolve => {
       const shootStep = (now) => {
-        const elapsed = now - startTime;
+        const elapsed = now - shootStartTime;
         const rawProgress = Math.min(elapsed / shootDuration, 1);
         this.pullWeb.progress = 1 - Math.pow(1 - rawProgress, 3);
         if (rawProgress < 1) {
@@ -667,28 +679,86 @@ class SpiderManController {
       requestAnimationFrame(shootStep);
     });
 
-    // Splat pops onto screen glass at the random anchor
+    // Splat pops onto screen glass with bouncy comic scale
     splat.classList.add('splat-active');
-    await this.wait(220);
+    splat.style.transform = 'translate(-50%, -50%) scale(1)';
 
-    // STEP 2: SPIDER-MAN HEAVES & PULLS TOWARDS THE RIGHT!
-    if (window.comicAudio) window.comicAudio.playWhoosh();
-
+    // PHASE 2: TENSION BUILD-UP & RECOIL (130ms)
     this.crawlerEl.classList.add('spidey-pulling-recoil');
     this.pullWeb.tension = 1.0;
-    this.pullWeb.targetX = handX + 70; // Pulls towards himself on the right
+    if (window.comicAudio) window.comicAudio.playWhoosh();
 
-    await this.wait(180);
+    await this.wait(130);
 
-    // STEP 3: PRE-TRANSITION PAGE GETS YANKED AND SLIDES TO THE RIGHT (0.65s)!
+    // PHASE 3: THE YANK / PULL TO THE RIGHT (520ms)
+    // Synchronously pulls mainWrapper, splat, and web line target in real-time
     if (backdrop) backdrop.classList.add('active');
-    if (mainWrapper) mainWrapper.classList.add('pull-page-right');
 
-    await this.wait(550);
+    const pullStartTime = performance.now();
+    const pullDuration = 520;
+    const maxShiftX = window.innerWidth + 140;
 
-    // STEP 4: IMPACT "BAM!" & SET POSITION TO TARGET SECTION
+    await new Promise(resolve => {
+      const pullStep = (now) => {
+        const elapsed = now - pullStartTime;
+        const rawProgress = Math.min(elapsed / pullDuration, 1);
+
+        // Superhero acceleration power curve
+        const easePull = Math.pow(rawProgress, 2.2);
+        const currentShiftX = easePull * maxShiftX;
+        const tilt = easePull * 1.5;
+
+        // 1. Move page smoothly to the right
+        if (mainWrapper) {
+          mainWrapper.style.transform = `translate3d(${currentShiftX}px, 0, 0) rotate(${tilt}deg)`;
+        }
+
+        // 2. Move splat with the page to the right
+        splat.style.left = `${screenTargetX + currentShiftX}px`;
+
+        // 3. Keep web line endpoint locked to the moving splat
+        this.pullWeb.targetX = screenTargetX + currentShiftX;
+        this.pullWeb.targetY = screenTargetY;
+        this.pullWeb.tension = Math.max(0.15, 1.0 - easePull * 0.85);
+
+        if (rawProgress < 1) {
+          requestAnimationFrame(pullStep);
+        } else {
+          resolve();
+        }
+      };
+      requestAnimationFrame(pullStep);
+    });
+
+    // PHASE 4: IMPACT "BAM!" & SILENT SECTION SWITCH BEHIND RED BACKDROP
     if (window.comicAudio) window.comicAudio.playImpact();
 
+    // Smoothly fade out the pull web line (160ms)
+    const fadeStartTime = performance.now();
+    const fadeDuration = 160;
+    await new Promise(resolve => {
+      const fadeStep = (now) => {
+        const elapsed = now - fadeStartTime;
+        const raw = Math.min(elapsed / fadeDuration, 1);
+        this.pullWeb.opacity = 1 - raw;
+        splat.style.opacity = `${1 - raw}`;
+        if (raw < 1) {
+          requestAnimationFrame(fadeStep);
+        } else {
+          this.pullWeb.active = false;
+          this.pullWeb.opacity = 1.0;
+          splat.classList.remove('splat-active');
+          splat.style.opacity = '0';
+          splat.style.left = '-9999px';
+          splat.style.top = '-9999px';
+          this.crawlerEl.classList.remove('spidey-pulling-recoil');
+          resolve();
+        }
+      };
+      requestAnimationFrame(fadeStep);
+    });
+
+    // Instant scroll to target section (completely concealed by red backdrop)
     const targetEl = document.getElementById(`section-${targetSectionId}`);
     if (targetEl) {
       targetEl.scrollIntoView({ behavior: 'instant', block: 'start' });
@@ -699,26 +769,37 @@ class SpiderManController {
     }
     this.currentSectionId = targetSectionId;
 
-    await this.wait(350);
+    // Synchronize scroll coordinates to prevent Spider-Man from sliding frantically
+    this.targetScroll = window.scrollY;
+    this.currentScroll = window.scrollY;
+    this.lastScroll = window.scrollY;
+    this.slideVelocity = 0;
+    this.updatePosition();
 
-    // STEP 5: PAGE RESETS INTO PLACE & RELEASE WEB
-    this.pullWeb.active = false;
-    splat.classList.remove('splat-active');
-    this.crawlerEl.classList.remove('spidey-pulling-recoil');
+    // Reset mainWrapper cleanly behind the opaque backdrop
+    if (mainWrapper) {
+      mainWrapper.style.transform = '';
+    }
 
-    if (mainWrapper) mainWrapper.classList.remove('pull-page-right');
-    if (backdrop) backdrop.classList.remove('active');
+    // Small pause to take in the comic section announcement banner (200ms)
+    await this.wait(200);
 
-    await this.wait(400);
+    // PHASE 5: SMOOTHLY UNVEIL THE TARGET SECTION
+    if (backdrop) {
+      backdrop.classList.remove('active');
+    }
 
-    // Settle bounce on the web line (applied to inner img, zero glitch!)
+    // Wait for backdrop fade transition (360ms)
+    await this.wait(360);
+
+    // Settle bounce on the web line & welcome speech bubble
     this.updatePosition();
     this.triggerWebBounce();
     this.showBubble(`Welcome to ${targetSectionTitle}!`, 2500);
 
     this.isTransitioning = false;
 
-    // Restart the 30-second swing timer!
+    // Restart the 30-second swing timer fresh!
     this.startSwingTimer();
   }
 
