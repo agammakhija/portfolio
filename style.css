@@ -2270,8 +2270,6 @@ body.theme-vintage .spidey-dive-img {
   justify-content: center;
   will-change: transform;
 }
-  justify-content: center;
-}
 
 .loader-runner-img {
   width: auto;
@@ -2283,26 +2281,85 @@ body.theme-vintage .spidey-dive-img {
   transform-origin: bottom center;
 }
 
-/* Running Sprint Animation (bob & stride) */
+/* Authentic Forward Sprint Animation: leaning forward into the run (+14deg), high-energy alternating foot-strikes */
 .loader-spidey-runner.is-running .loader-runner-img {
-  animation: runner-sprint-bob 0.26s linear infinite;
+  animation: runner-sprint-forward 0.22s linear infinite;
 }
 
-@keyframes runner-sprint-bob {
+@keyframes runner-sprint-forward {
   0% {
-    transform: translateY(0) rotate(1deg) scaleY(1);
+    /* Foot 1 contact: forward lean, knee compression */
+    transform: translateY(0px) rotate(14deg) skewX(-4deg) scaleY(0.97);
   }
-  25% {
-    transform: translateY(-8px) rotate(-4deg) scaleY(0.96);
+  22% {
+    /* Airborne spring: launches forward */
+    transform: translateY(-11px) rotate(18deg) skewX(2deg) scaleY(1.03);
   }
-  50% {
-    transform: translateY(0) rotate(0deg) scaleY(1);
+  48% {
+    /* Airborne apex */
+    transform: translateY(-8px) rotate(16deg) skewX(0deg) scaleY(1.01);
   }
-  75% {
-    transform: translateY(-9px) rotate(-5deg) scaleY(0.95);
+  56% {
+    /* Foot 2 contact: second foot impacts the bar */
+    transform: translateY(1px) rotate(13deg) skewX(5deg) scaleY(0.96);
+  }
+  78% {
+    /* Push-off 2: second spring into the air */
+    transform: translateY(-12px) rotate(19deg) skewX(-2deg) scaleY(1.04);
   }
   100% {
-    transform: translateY(0) rotate(1deg) scaleY(1);
+    /* Loop back to foot 1 contact */
+    transform: translateY(0px) rotate(14deg) skewX(-4deg) scaleY(0.97);
+  }
+}
+
+/* Comic Motion / Speed Lines Trailing Behind Runner */
+.runner-speed-lines {
+  position: absolute;
+  left: -26px;
+  top: 35%;
+  width: 28px;
+  height: 22px;
+  pointer-events: none;
+}
+
+.speed-line {
+  position: absolute;
+  height: 2.5px;
+  background: var(--comic-ink);
+  border-radius: 2px;
+  opacity: 0.85;
+}
+
+.loader-spidey-runner.is-running .speed-line.sl1 {
+  width: 20px;
+  top: 2px;
+  right: 0;
+  animation: speed-line-anim 0.2s infinite linear;
+}
+
+.loader-spidey-runner.is-running .speed-line.sl2 {
+  width: 28px;
+  top: 9px;
+  right: 4px;
+  animation: speed-line-anim 0.2s infinite linear 0.07s;
+}
+
+.loader-spidey-runner.is-running .speed-line.sl3 {
+  width: 16px;
+  top: 16px;
+  right: 2px;
+  animation: speed-line-anim 0.2s infinite linear 0.13s;
+}
+
+@keyframes speed-line-anim {
+  0% {
+    transform: scaleX(0.3) translateX(0);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scaleX(1.3) translateX(-18px);
+    opacity: 0;
   }
 }
 
@@ -2310,7 +2367,7 @@ body.theme-vintage .spidey-dive-img {
 .runner-dust {
   position: absolute;
   left: -12px;
-  bottom: 2px;
+  bottom: 0px;
   width: 28px;
   height: 18px;
   pointer-events: none;
@@ -2327,17 +2384,17 @@ body.theme-vintage .spidey-dive-img {
 .loader-spidey-runner.is-running .dust-particle.p1 {
   width: 8px;
   height: 8px;
-  bottom: 2px;
+  bottom: 0px;
   left: 4px;
-  animation: dust-puff-anim 0.35s linear infinite;
+  animation: dust-puff-anim 0.28s linear infinite;
 }
 
 .loader-spidey-runner.is-running .dust-particle.p2 {
   width: 12px;
   height: 12px;
-  bottom: 5px;
+  bottom: 3px;
   left: -2px;
-  animation: dust-puff-anim 0.35s linear infinite 0.12s;
+  animation: dust-puff-anim 0.28s linear infinite 0.1s;
 }
 
 .loader-spidey-runner.is-running .dust-particle.p3 {
@@ -2345,7 +2402,7 @@ body.theme-vintage .spidey-dive-img {
   height: 7px;
   bottom: 1px;
   left: -8px;
-  animation: dust-puff-anim 0.35s linear infinite 0.24s;
+  animation: dust-puff-anim 0.28s linear infinite 0.19s;
 }
 
 @keyframes dust-puff-anim {
@@ -2363,41 +2420,50 @@ body.theme-vintage .spidey-dive-img {
   }
 }
 
-/* Crouch Before Leap */
+/* Crouch At Lip of Bar Before Dive */
 .loader-spidey-runner.is-crouching .loader-runner-img {
-  transform: translateY(8px) scaleY(0.78) scaleX(1.18) rotate(4deg);
-  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: translateY(6px) rotate(8deg) scaleY(0.8) scaleX(1.15);
+  transition: transform 0.08s ease-in;
 }
 
-.loader-spidey-runner.is-crouching .runner-dust {
+.loader-spidey-runner.is-crouching .runner-dust,
+.loader-spidey-runner.is-crouching .runner-speed-lines {
   display: none;
 }
 
-/* LEAP OFF ANIMATION */
-.loader-spidey-runner.is-leaping {
-  animation: spidey-leap-off 0.62s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+/* DIVE OFF THE BAR ANIMATION (Transitions directly into portfolio TASM 2 skydive) */
+.loader-spidey-runner.is-diving-off {
+  animation: spidey-dive-off-bar 0.58s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-@keyframes spidey-leap-off {
+@keyframes spidey-dive-off-bar {
   0% {
-    transform: translateX(var(--final-x, 380px)) translateY(6px) scale(1) rotate(0deg);
+    transform: translateX(var(--final-x, 380px)) translateY(6px) rotate(8deg) scale(1);
     opacity: 1;
   }
-  25% {
-    transform: translateX(calc(var(--final-x, 380px) + 30px)) translateY(-65px) scale(1.22) rotate(-14deg);
+  20% {
+    /* Vaults forward off the bar */
+    transform: translateX(calc(var(--final-x, 380px) + 32px)) translateY(-22px) rotate(34deg) scale(1.06);
     opacity: 1;
   }
-  60% {
-    transform: translateX(calc(var(--final-x, 380px) + 80px)) translateY(-180px) scale(1.5) rotate(-28deg);
+  50% {
+    /* Pitches into head-first dive downward */
+    transform: translateX(calc(var(--final-x, 380px) + 80px)) translateY(60px) rotate(70deg) scale(1.18);
     opacity: 1;
+  }
+  80% {
+    /* Plunging down into the screen */
+    transform: translateX(calc(var(--final-x, 380px) + 130px)) translateY(180px) rotate(86deg) scale(1.3);
+    opacity: 0.85;
   }
   100% {
-    transform: translateX(calc(var(--final-x, 380px) + 140px)) translateY(-340px) scale(1.75) rotate(-40deg);
+    /* Completely diving down through into the portfolio */
+    transform: translateX(calc(var(--final-x, 380px) + 175px)) translateY(320px) rotate(92deg) scale(1.42);
     opacity: 0;
   }
 }
 
-/* Comic Leap Action Word "WHOOSH!" */
+/* Comic Action Word "DIVE!" */
 .loader-leap-word {
   position: absolute;
   top: -24px;
@@ -2416,8 +2482,28 @@ body.theme-vintage .spidey-dive-img {
   white-space: nowrap;
 }
 
-.loader-spidey-runner.is-leaping .loader-leap-word {
-  animation: leap-word-pop 0.58s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+.loader-spidey-runner.is-diving-off .loader-leap-word {
+  animation: dive-word-pop 0.52s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes dive-word-pop {
+  0% {
+    opacity: 0;
+    transform: rotate(-15deg) scale(0);
+  }
+  30% {
+    opacity: 1;
+    transform: rotate(-8deg) scale(1.28);
+  }
+  75% {
+    opacity: 1;
+    transform: rotate(-4deg) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(0deg) scale(0.85);
+  }
+}
 }
 
 @keyframes leap-word-pop {

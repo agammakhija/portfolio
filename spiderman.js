@@ -180,7 +180,7 @@ class SpiderManController {
         hasLeaped = true;
         const currentX = runner ? parseFloat(runner.getAttribute('data-current-x') || '380') : 380;
         
-        // At 100%, trigger crouch and dynamic leap off!
+        // At 100%, trigger crouch at the lip of the bar before diving
         if (runner) {
           runner.classList.remove('is-running');
           runner.classList.add('is-crouching');
@@ -188,17 +188,17 @@ class SpiderManController {
         }
 
         setTimeout(() => {
-          // Dynamic Leap Off!
+          // Dynamic DIVE OFF the loading bar!
           if (runner) {
             runner.classList.remove('is-crouching');
-            runner.classList.add('is-leaping');
+            runner.classList.add('is-diving-off');
           }
 
           try {
             if (window.comicAudio) window.comicAudio.playWhoosh();
           } catch (e) {}
 
-          // Fade out loading screen overlay into the sky
+          // Fade out loading screen overlay as he plunges downward, transitioning straight into the TASM 2 skydive!
           setTimeout(() => {
             if (overlay) {
               overlay.classList.add('loader-fade-out');
@@ -216,8 +216,8 @@ class SpiderManController {
                 overlay.parentNode.removeChild(overlay);
               }
             }, 450);
-          }, 180);
-        }, 110);
+          }, 200);
+        }, 90);
       }
     };
 
