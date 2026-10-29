@@ -4,10 +4,71 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Agam Makhija | Python & AI Portfolio</title>
-  <link rel="stylesheet" href="style.css?v=2.4">
+  <script>
+    // Immediate anti-FOUC era check for instant vintage preloader rendering
+    if (localStorage.getItem('comic-theme-era') === 'vintage') {
+      document.documentElement.classList.add('theme-vintage');
+    }
+  </script>
+  <link rel="stylesheet" href="style.css?v=2.5">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕷️</text></svg>">
 </head>
 <body>
+
+  <!-- ==========================================
+       COMIC BOOK PRELOADER (GMAIL-INSPIRED RUNNER)
+       ========================================== -->
+  <div id="comic-loader-overlay" class="comic-loader-overlay">
+    <div class="loader-backdrop-dots"></div>
+    <div class="loader-content-box">
+      <div class="loader-badge-row">
+        <div class="loader-code-stamp">
+          <span>APPROVED BY</span>
+          <strong>THE COMICS CODE</strong>
+          <span>AUTHORITY</span>
+        </div>
+        <div class="loader-issue-stamp">
+          <span>SPIDER-SYS // ISSUE #01</span>
+        </div>
+      </div>
+      
+      <div class="loader-header-title">THE SPECTACULAR PORTFOLIO</div>
+      <div class="loader-status-text" id="loader-status-text">CALIBRATING SPIDER-SENSE...</div>
+      
+      <!-- The Track & Running Stage -->
+      <div class="loader-track-stage">
+        <!-- Running Spider-Man Sprite -->
+        <div class="loader-spidey-runner is-running" id="loader-spidey-runner">
+          <div class="runner-dust" id="runner-dust">
+            <span class="dust-particle p1"></span>
+            <span class="dust-particle p2"></span>
+            <span class="dust-particle p3"></span>
+          </div>
+          <img 
+            src="spiderman-running.png" 
+            alt="Spider-Man Running" 
+            id="loader-runner-img"
+            class="loader-runner-img"
+            draggable="false"
+          />
+          <div class="loader-leap-word" id="loader-leap-word">WHOOSH!</div>
+        </div>
+        
+        <!-- Progress Bar Track (Gmail inspired) -->
+        <div class="comic-progress-track" id="comic-progress-track">
+          <div class="comic-progress-bar" id="comic-progress-bar">
+            <div class="comic-progress-stripes"></div>
+            <div class="comic-progress-glow"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="loader-footer-row">
+        <div class="loader-sys-info">INITIALIZING HERO PROTOCOLS</div>
+        <div class="loader-percentage" id="loader-percentage">0%</div>
+      </div>
+    </div>
+  </div>
 
   <!-- ==========================================
        MARVEL / COMIC CODE HEADER BAR
@@ -543,8 +604,8 @@
   </footer>
 
   <!-- Scripts in dependency order -->
-  <script src="audio.js?v=2.4"></script>
-  <script src="spiderman.js?v=2.4"></script>
-  <script src="app.js?v=2.4"></script>
+  <script src="audio.js?v=2.5"></script>
+  <script src="spiderman.js?v=2.5"></script>
+  <script src="app.js?v=2.5"></script>
 </body>
 </html>
