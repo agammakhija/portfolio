@@ -97,6 +97,7 @@ class SpiderManController {
     const isVintage = document.body.classList.contains('theme-vintage') || localStorage.getItem('comic-theme-era') === 'vintage';
     const hangSrc = isVintage ? 'spiderman-hanging-vintage.png' : 'spiderman-hanging.png';
     const standSrc = isVintage ? 'spiderman-standing-vintage.png' : 'spiderman-standing.png';
+    const diveSrc = isVintage ? 'spiderman-diving-back-vintage.png' : 'spiderman-diving-back.png';
 
     const wrapper = document.createElement('div');
     wrapper.id = 'spidey-container';
@@ -123,6 +124,14 @@ class SpiderManController {
             alt="Spider-Man Standing Normally" 
             id="spidey-stand-img"
             class="spidey-stand-img"
+            draggable="false"
+          />
+          <!-- TASM 2 Diving Sprite (Iconic Back View) -->
+          <img 
+            src="${diveSrc}" 
+            alt="Spider-Man Diving Back View" 
+            id="spidey-dive-img"
+            class="spidey-dive-img"
             draggable="false"
           />
         </div>
@@ -176,11 +185,15 @@ class SpiderManController {
   setThemeEra(isVintage) {
     const hangImg = document.getElementById('spidey-hang-img');
     const standImg = document.getElementById('spidey-stand-img');
+    const diveImg = document.getElementById('spidey-dive-img');
     if (hangImg) {
       hangImg.src = isVintage ? 'spiderman-hanging-vintage.png' : 'spiderman-hanging.png';
     }
     if (standImg) {
       standImg.src = isVintage ? 'spiderman-standing-vintage.png' : 'spiderman-standing.png';
+    }
+    if (diveImg) {
+      diveImg.src = isVintage ? 'spiderman-diving-back-vintage.png' : 'spiderman-diving-back.png';
     }
   }
 

@@ -1497,6 +1497,27 @@ textarea.form-control {
   pointer-events: none;
 }
 
+/* TASM 2 Back View Diving Sprite */
+.spidey-dive-img {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 100%;
+  height: 204px;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 18px rgba(17, 17, 17, 0.75));
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  opacity: 0;
+  transform: translateX(-50%) rotate(0deg) scale(0.9);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+body.theme-vintage .spidey-dive-img {
+  filter: contrast(1.15) brightness(0.92) hue-rotate(-10deg) saturate(1.1) drop-shadow(0 20px 18px rgba(31, 27, 22, 0.85));
+}
+
 /* Floor standing mode: smoothly swaps from hanging sprite to genuine standing sprite! */
 .spidey-crawler.spidey-on-floor .spidey-hang-img {
   opacity: 0;
@@ -1545,15 +1566,30 @@ textarea.form-control {
   transition: none !important;
 }
 
+/* TASM 2 Skydive Dive Stance: Back of suit shown facing away! */
 .spidey-crawler.spidey-diving .spidey-hang-img {
-  transform: rotate(-14deg) scale(1.08);
-  filter: drop-shadow(0 25px 20px rgba(17, 17, 17, 0.65));
+  opacity: 0 !important;
+  transform: scale(0.85);
+  pointer-events: none;
+}
+
+.spidey-crawler.spidey-diving .spidey-dive-img {
+  opacity: 1 !important;
+  transform: translateX(-50%) rotate(-4deg) scale(1.08);
+  pointer-events: auto;
+}
+
+/* TASM 2 Web Catch & Hook Recoil: Flips from back-view into front hanging pose */
+.spidey-crawler.spidey-dive-hook .spidey-dive-img {
+  opacity: 0 !important;
+  transform: translateX(-50%) rotate(16deg) scale(0.88);
+  transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
 .spidey-crawler.spidey-dive-hook .spidey-hang-img {
-  transform: rotate(14deg) scale(1.14);
-  filter: drop-shadow(0 15px 12px rgba(17, 17, 17, 0.7));
-  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  opacity: 1 !important;
+  transform: rotate(0deg) scale(1);
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 /* ==========================================================================
