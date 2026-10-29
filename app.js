@@ -319,6 +319,32 @@ class PortfolioApp {
     });
   }
 
+  spawnActionWord(clientX, clientY, customWord = null, customColor = null) {
+    let wordPool = ['POW!', 'BAM!', 'WHAM!', 'POP!', 'ZAP!', 'BOOM!'];
+    const word = customWord || wordPool[Math.floor(Math.random() * wordPool.length)];
+    const colors = ['#FFDE00', '#00E5FF', '#FF1744', '#00E676', '#FF9100'];
+    const color = customColor || colors[Math.floor(Math.random() * colors.length)];
+    const rotation = (Math.random() * 26 - 13).toFixed(1);
+
+    const popEl = document.createElement('div');
+    popEl.className = 'comic-action-pop';
+    popEl.textContent = word;
+    popEl.style.position = 'fixed';
+    popEl.style.left = `${clientX}px`;
+    popEl.style.top = `${clientY}px`;
+    popEl.style.background = color;
+    popEl.style.color = (color === '#FFDE00' || color === '#00E5FF' || color === '#00E676') ? '#111' : '#FFF';
+    popEl.style.setProperty('--rot', `${rotation}deg`);
+    popEl.style.pointerEvents = 'none';
+    popEl.style.zIndex = '9999999';
+
+    document.body.appendChild(popEl);
+
+    setTimeout(() => {
+      if (popEl.parentNode) popEl.remove();
+    }, 650);
+  }
+
   bindComicActionWords() {
     const handlePop = (clientX, clientY, target) => {
       let wordPool = ['POW!', 'BAM!', 'WHAM!', 'POP!', 'ZAP!', 'BOOM!'];
@@ -338,7 +364,6 @@ class PortfolioApp {
       const word = wordPool[Math.floor(Math.random() * wordPool.length)];
       const colors = ['#FFDE00', '#00E5FF', '#FF1744', '#00E676', '#FF9100'];
       const color = colors[Math.floor(Math.random() * colors.length)];
-      const rotation = (Math.random() * 26 - 13).toFixed(1);
 
       if ((!clientX && !clientY) || (clientX === 0 && clientY === 0)) {
         if (target && target.getBoundingClientRect) {
@@ -351,23 +376,7 @@ class PortfolioApp {
         }
       }
 
-      const popEl = document.createElement('div');
-      popEl.className = 'comic-action-pop';
-      popEl.textContent = word;
-      popEl.style.position = 'fixed';
-      popEl.style.left = `${clientX}px`;
-      popEl.style.top = `${clientY}px`;
-      popEl.style.background = color;
-      popEl.style.color = (color === '#FFDE00' || color === '#00E5FF' || color === '#00E676') ? '#111' : '#FFF';
-      popEl.style.setProperty('--rot', `${rotation}deg`);
-      popEl.style.pointerEvents = 'none';
-      popEl.style.zIndex = '9999999';
-
-      document.body.appendChild(popEl);
-
-      setTimeout(() => {
-        if (popEl.parentNode) popEl.remove();
-      }, 650);
+      this.spawnActionWord(clientX, clientY, word, color);
     };
 
     // Capture-phase listener guarantees it fires on every click anywhere

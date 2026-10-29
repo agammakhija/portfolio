@@ -71,6 +71,11 @@ class SpiderManController {
     this.swingTimer = null;
     this.SWING_INTERVAL = 30000; // 30 seconds
 
+    // TASM 2 Skydive Dive Entrance State
+    this.isDiving = true;
+    this.diveState = null;
+    this.diveSpeedLines = [];
+
     // Floor Landing State (When approaching yellow footer / floor)
     this.isOnFloor = false;
     this.isLanding = false;
@@ -85,7 +90,7 @@ class SpiderManController {
     this.bindEvents();
     this.updatePosition(true);
     this.animate();
-    this.startSwingTimer();
+    this.playTASM2DiveEntrance();
   }
 
   setupDOM() {
@@ -398,6 +403,213 @@ class SpiderManController {
   }
 
   /**
+   * ICONIC THE AMAZING SPIDER-MAN 2 (TASM 2) SKYDIVE ENTRANCE
+   * Triggers automatically every time the website refreshes or is opened.
+   * 1. Free-falls headfirst from above the clouds at supersonic speed with vertical speed lines
+   * 2. Fires a web-line upward with an explosive "THWIP!" right as he reaches terminal depth
+   * 3. The web pulls taut with elastic recoil, arresting his dive and converting momentum into a huge upward swoop
+   * 4. Swings dynamically into resting position, flips into classic hanging pose
+   * 5. Settle bounce + comic greeting speech bubble!
+   */
+  async playTASM2DiveEntrance() {
+    this.isDiving = true;
+    this.diveSpeedLines = [];
+
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    // Initialize speed lines for wind rush effect
+    for (let i = 0; i < 35; i++) {
+      this.diveSpeedLines.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        length: Math.random() * 110 + 45,
+        speed: Math.random() * 32 + 22,
+        width: Math.random() * 2.2 + 1,
+        alpha: Math.random() * 0.65 + 0.35
+      });
+    }
+
+    const targetRestX = this.getSideX('right', width);
+    // If opened scrolled down, calculate resting Y based on current scroll
+    const minY = 35;
+    const maxY = height - this.spideyHeight - 50;
+    const targetRestY = minY + (maxY - minY) * this.scrollProgress;
+
+    // Start dive high above viewport, angled slightly inward
+    const startX = targetRestX - 120;
+    const startY = -this.spideyHeight - 120;
+    const maxDiveY = Math.min(height * 0.65, targetRestY + 380);
+    const ceilingAnchorX = targetRestX + this.webAnchorOffsetX;
+    const ceilingAnchorY = 0;
+
+    this.diveState = {
+      currentX: startX,
+      currentY: startY,
+      tilt: -16, // Aerodynamic dive angle
+      webShooting: false,
+      webAttached: false,
+      webProgress: 0,
+      webTension: 0,
+      anchorX: ceilingAnchorX,
+      anchorY: ceilingAnchorY
+    };
+
+    if (this.crawlerEl) {
+      this.crawlerEl.classList.add('spidey-diving');
+    }
+
+    // Audio: Wind rush / diving whoosh
+    try {
+      if (window.comicAudio) window.comicAudio.playWhoosh();
+    } catch (e) {}
+
+    // ==========================================
+    // PHASE 1: SUPERSONIC FREE-FALL (0 to 800ms)
+    // ==========================================
+    const diveDuration = 800;
+    const diveStartTime = performance.now();
+
+    await new Promise(resolve => {
+      const diveStep = (now) => {
+        const elapsed = now - diveStartTime;
+        const p = Math.min(elapsed / diveDuration, 1);
+
+        // Power acceleration curve (accelerates under gravity)
+        const easeDown = Math.pow(p, 2.3);
+        const swayWind = Math.sin(p * Math.PI * 4) * 7;
+
+        this.diveState.currentX = startX + (targetRestX - startX) * 0.35 * easeDown + swayWind;
+        this.diveState.currentY = startY + (maxDiveY - startY) * easeDown;
+        this.diveState.tilt = -16 + p * 8 + Math.sin(p * Math.PI * 6) * 3;
+
+        this.spideyX = this.diveState.currentX;
+        this.spideyY = this.diveState.currentY;
+
+        if (p < 1) {
+          requestAnimationFrame(diveStep);
+        } else {
+          resolve();
+        }
+      };
+      requestAnimationFrame(diveStep);
+    });
+
+    // ==========================================
+    // PHASE 2: "THWIP!" WEB SHOOT (800 to 1020ms)
+    // ==========================================
+    try {
+      if (window.comicAudio) window.comicAudio.playThwip();
+    } catch (e) {}
+
+    this.diveState.webShooting = true;
+    const shootStartTime = performance.now();
+    const shootDuration = 220;
+
+    // Spawn explosive comic THWIP! at hand position
+    if (window.portfolioApp && window.portfolioApp.spawnActionWord) {
+      window.portfolioApp.spawnActionWord(
+        this.diveState.currentX + this.webAnchorOffsetX,
+        this.diveState.currentY + 12,
+        'THWIP!',
+        '#FFDE00'
+      );
+    }
+
+    await new Promise(resolve => {
+      const shootStep = (now) => {
+        const elapsed = now - shootStartTime;
+        const p = Math.min(elapsed / shootDuration, 1);
+        this.diveState.webProgress = Math.pow(p, 0.6); // Lightning-fast web shoot
+
+        // In mid-shoot, Spider-Man reaches bottom apex
+        this.diveState.currentY = maxDiveY + Math.sin(p * Math.PI) * 14;
+        this.diveState.tilt = -8 + p * 12;
+
+        this.spideyX = this.diveState.currentX;
+        this.spideyY = this.diveState.currentY;
+
+        if (p < 1) {
+          requestAnimationFrame(shootStep);
+        } else {
+          this.diveState.webAttached = true;
+          this.diveState.webShooting = false;
+          resolve();
+        }
+      };
+      requestAnimationFrame(shootStep);
+    });
+
+    // ==========================================
+    // PHASE 3: ELASTIC ARREST & SWOOP UP (1020 to 1750ms)
+    // ==========================================
+    if (this.crawlerEl) {
+      this.crawlerEl.classList.remove('spidey-diving');
+      this.crawlerEl.classList.add('spidey-dive-hook');
+    }
+
+    try {
+      if (window.comicAudio) window.comicAudio.playWhoosh();
+    } catch (e) {}
+
+    const swoopStartTime = performance.now();
+    const swoopDuration = 730;
+    const fromX = this.diveState.currentX;
+    const fromY = this.diveState.currentY;
+
+    await new Promise(resolve => {
+      const swoopStep = (now) => {
+        const elapsed = now - swoopStartTime;
+        const p = Math.min(elapsed / swoopDuration, 1);
+
+        // Bungee deceleration and smooth upward swing
+        const easeSwoop = 1 - Math.pow(1 - p, 3);
+
+        this.diveState.currentX = fromX + (targetRestX - fromX) * easeSwoop;
+        this.diveState.currentY = fromY + (targetRestY - fromY) * easeSwoop;
+        this.diveState.tilt = 12 * (1 - p); // Flips upright into hanging stance
+        this.diveState.webTension = 1.0 - p * 0.7;
+
+        this.spideyX = this.diveState.currentX;
+        this.spideyY = this.diveState.currentY;
+
+        if (p < 1) {
+          requestAnimationFrame(swoopStep);
+        } else {
+          resolve();
+        }
+      };
+      requestAnimationFrame(swoopStep);
+    });
+
+    if (this.crawlerEl) {
+      this.crawlerEl.classList.remove('spidey-dive-hook');
+    }
+
+    // ==========================================
+    // PHASE 4: ELASTIC BOUNCE & HERO SETTLE
+    // ==========================================
+    this.isDiving = false;
+    this.diveSpeedLines = [];
+    this.spideyX = targetRestX;
+    this.spideyY = targetRestY;
+    this.updatePosition();
+
+    // Natural web spring recoil
+    this.triggerWebBounce();
+
+    // Welcome speech bubble with TASM / Comic excitement!
+    const isVintage = document.body.classList.contains('theme-vintage');
+    const bubbleMsg = isVintage
+      ? "Face it, Tiger! The Amazing Spider-Man has arrived!"
+      : "WOOO-HOOO! Now THAT'S what I call an entrance!";
+    this.showBubble(bubbleMsg, 3200);
+
+    // Start periodic 30-second swing timer
+    this.startSwingTimer();
+  }
+
+  /**
    * Floor Landing Mechanic:
    * When approaching the contact / footer floor, Spider-Man lets go of the web,
    * flips 180 degrees upright, and lands right onto the black line before the yellow footer!
@@ -540,6 +752,91 @@ class SpiderManController {
   drawWebCanvas(spideyScreenX, spideyScreenY, swayOffset = 0) {
     const ctx = this.webCtx;
     ctx.clearRect(0, 0, this.webCanvas.width, this.webCanvas.height);
+    const isVintage = document.body.classList.contains('theme-vintage');
+
+    // ==========================================
+    // 0. TASM 2 SKYDIVE SPEED LINES & DIVE WEB
+    // ==========================================
+    if (this.isDiving && this.diveState) {
+      // Wind speed streaks rushing upwards past falling Spider-Man
+      if (this.diveSpeedLines && this.diveSpeedLines.length > 0) {
+        ctx.save();
+        for (const line of this.diveSpeedLines) {
+          line.y -= line.speed;
+          if (line.y + line.length < 0) {
+            line.y = this.webCanvas.height + Math.random() * 50;
+            line.x = Math.random() * this.webCanvas.width;
+          }
+          ctx.lineWidth = line.width;
+          ctx.strokeStyle = isVintage ? `rgba(221, 167, 38, ${line.alpha * 0.7})` : `rgba(255, 255, 255, ${line.alpha})`;
+          ctx.beginPath();
+          ctx.moveTo(line.x, line.y);
+          ctx.lineTo(line.x, line.y + line.length);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      const handX = spideyScreenX + this.webAnchorOffsetX;
+      const handY = spideyScreenY + 4;
+      const anchorX = this.diveState.anchorX;
+      const anchorY = 0;
+
+      if (this.diveState.webShooting) {
+        // High-velocity silk projectile shooting to ceiling
+        const currTipX = handX + (anchorX - handX) * this.diveState.webProgress;
+        const currTipY = handY + (anchorY - handY) * this.diveState.webProgress;
+
+        ctx.save();
+        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = isVintage ? '#F3E5C8' : '#FFFFFF';
+        ctx.beginPath();
+        ctx.moveTo(handX, handY);
+        ctx.lineTo(currTipX, currTipY);
+        ctx.stroke();
+        ctx.restore();
+      } else if (this.diveState.webAttached) {
+        // Elastic dynamic web line decelerating and pulling Spidey out of the dive
+        const tension = this.diveState.webTension || 0;
+        const ctrlX = (anchorX + handX) / 2 + tension * 20;
+        const ctrlY = (anchorY + handY) / 2 + tension * 45;
+
+        ctx.save();
+        // Drop shadow on elastic web
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = isVintage ? 'rgba(31, 27, 22, 0.7)' : 'rgba(17, 17, 17, 0.4)';
+        ctx.beginPath();
+        ctx.moveTo(anchorX + 2, anchorY);
+        ctx.quadraticCurveTo(ctrlX + 2, ctrlY, handX + 2, handY);
+        ctx.stroke();
+
+        // Main web strand
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = isVintage ? '#F3E5C8' : '#FFFFFF';
+        ctx.beginPath();
+        ctx.moveTo(anchorX, anchorY);
+        ctx.quadraticCurveTo(ctrlX, ctrlY, handX, handY);
+        ctx.stroke();
+
+        // Spiral knots
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = isVintage ? '#DDA726' : '#D8EDFA';
+        const totalDist = Math.hypot(handX - anchorX, handY - anchorY);
+        const knots = Math.max(3, Math.floor(totalDist / 22));
+        for (let i = 1; i < knots; i++) {
+          const frac = i / knots;
+          const ky = anchorY + (handY - anchorY) * frac;
+          const kx = anchorX + (handX - anchorX) * frac;
+          ctx.beginPath();
+          ctx.arc(kx, ky, 2.2, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Early return during dive mode so regular hanging strand is not drawn
+      return;
+    }
 
     // 1. VERTICAL HANGING OR ACROBATIC SWINGING WEB STRAND
     // If Spider-Man is on the floor, he has released the hanging web!
@@ -780,7 +1077,11 @@ class SpiderManController {
     const sway = Math.sin(Date.now() * 0.002) * 6;
     const scrollTilt = Math.max(Math.min(this.slideVelocity * 0.3, 5), -5);
 
-    if (this.isLanding || this.isTakingFlight) {
+    if (this.isDiving && this.diveState) {
+      currentX = this.diveState.currentX;
+      currentY = this.diveState.currentY;
+      tiltAngle = this.diveState.tilt;
+    } else if (this.isLanding || this.isTakingFlight) {
       currentX = this.spideyX;
       currentY = this.spideyY;
       tiltAngle = 0;
@@ -802,11 +1103,11 @@ class SpiderManController {
     this.spideyY = currentY;
 
     if (this.crawlerEl) {
-      const renderX = (this.isSwinging || this.isOnFloor || this.isLanding) ? currentX : (currentX + sway);
+      const renderX = (this.isDiving || this.isSwinging || this.isOnFloor || this.isLanding) ? currentX : (currentX + sway);
       this.crawlerEl.style.transform = `translate3d(${renderX}px, ${currentY}px, 0) rotate(${tiltAngle}deg)`;
     }
 
-    this.drawWebCanvas(currentX, currentY, (this.isOnFloor ? 0 : sway));
+    this.drawWebCanvas(currentX, currentY, (this.isOnFloor || this.isDiving ? 0 : sway));
   }
 
   /**
@@ -825,7 +1126,7 @@ class SpiderManController {
    * 8. 30-second swing timer restarts fresh
    */
   async switchSection(targetSectionId, targetSectionTitle, onSwitchCallback) {
-    if (this.isTransitioning) return;
+    if (this.isTransitioning || this.isDiving) return;
 
     this.isTransitioning = true;
 

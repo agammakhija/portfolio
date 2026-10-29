@@ -1539,6 +1539,24 @@ textarea.form-control {
 }
 
 /* ==========================================================================
+   TASM 2 ICONIC SKYDIVE ENTRANCE
+   ========================================================================== */
+.spidey-crawler.spidey-diving {
+  transition: none !important;
+}
+
+.spidey-crawler.spidey-diving .spidey-hang-img {
+  transform: rotate(-14deg) scale(1.08);
+  filter: drop-shadow(0 25px 20px rgba(17, 17, 17, 0.65));
+}
+
+.spidey-crawler.spidey-dive-hook .spidey-hang-img {
+  transform: rotate(14deg) scale(1.14);
+  filter: drop-shadow(0 15px 12px rgba(17, 17, 17, 0.7));
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* ==========================================================================
    SPIDER-MAN SCREEN WEB-SHOOT & PAGE-PULL-RIGHT TRANSITION
    ========================================================================== */
 
