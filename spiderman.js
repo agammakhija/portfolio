@@ -90,138 +90,7 @@ class SpiderManController {
     this.bindEvents();
     this.updatePosition(true);
     this.animate();
-    
-    // Hide hanging crawler during preloader so Spider-Man runs only on the loading bar
-    if (this.crawlerEl) {
-      this.crawlerEl.style.opacity = '0';
-    }
-    this.runLoadingScreenThenDive();
-  }
-
-  runLoadingScreenThenDive() {
-    const overlay = document.getElementById('comic-loader-overlay');
-    if (!overlay) {
-      if (this.crawlerEl) this.crawlerEl.style.opacity = '1';
-      this.playTASM2DiveEntrance();
-      return;
-    }
-
-    const track = document.getElementById('comic-progress-track');
-    const progressBar = document.getElementById('comic-progress-bar');
-    const runner = document.getElementById('loader-spidey-runner');
-    const runnerImg = document.getElementById('loader-runner-img');
-    const statusText = document.getElementById('loader-status-text');
-    const percentageText = document.getElementById('loader-percentage');
-
-    const isVintage = document.body.classList.contains('theme-vintage') || 
-                      document.documentElement.classList.contains('theme-vintage') || 
-                      localStorage.getItem('comic-theme-era') === 'vintage';
-    
-    if (runnerImg) {
-      runnerImg.src = isVintage ? 'spiderman-running-vintage.png' : 'spiderman-running.png';
-    }
-
-    const duration = 1850; // Total run time along bar (ms)
-    const startTime = performance.now();
-    
-    const statusPhases = [
-      { at: 0, text: "CALIBRATING SPIDER-SENSE..." },
-      { at: 25, text: "MIXING WEB-FLUID FORMULA..." },
-      { at: 55, text: "INITIALIZING SPIDER-SYSTEMS..." },
-      { at: 80, text: "PREPARING SPECTACULAR ENTRANCE..." },
-      { at: 96, text: "LEAP OF FAITH!" }
-    ];
-
-    let hasLeaped = false;
-
-    const step = (now) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(1, elapsed / duration);
-      
-      // Smooth progression: starts briskly, steady sprint, smooth arrival
-      const eased = progress < 0.5 
-        ? 2 * progress * progress 
-        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-      
-      const percent = Math.floor(eased * 100);
-      
-      if (progressBar) {
-        progressBar.style.width = `${eased * 100}%`;
-      }
-      
-      // Calculate runner horizontal position along the track
-      if (runner && track) {
-        const trackWidth = track.clientWidth || 400;
-        const runnerWidth = runner.clientWidth || 58;
-        const minX = 4;
-        const maxX = Math.max(minX, trackWidth - runnerWidth + 4);
-        const currentX = minX + (maxX - minX) * eased;
-        runner.style.transform = `translateX(${currentX}px)`;
-        runner.setAttribute('data-current-x', currentX);
-      }
-      
-      if (percentageText) {
-        percentageText.textContent = `${percent}%`;
-      }
-
-      // Update comic status phrases
-      for (let i = statusPhases.length - 1; i >= 0; i--) {
-        if (percent >= statusPhases[i].at) {
-          if (statusText && statusText.textContent !== statusPhases[i].text) {
-            statusText.textContent = statusPhases[i].text;
-          }
-          break;
-        }
-      }
-
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      } else if (!hasLeaped) {
-        hasLeaped = true;
-        const currentX = runner ? parseFloat(runner.getAttribute('data-current-x') || '380') : 380;
-        
-        // At 100%, trigger crouch at the lip of the bar before diving
-        if (runner) {
-          runner.classList.remove('is-running');
-          runner.classList.add('is-crouching');
-          runner.style.setProperty('--final-x', `${currentX}px`);
-        }
-
-        setTimeout(() => {
-          // Dynamic DIVE OFF the loading bar!
-          if (runner) {
-            runner.classList.remove('is-crouching');
-            runner.classList.add('is-diving-off');
-          }
-
-          try {
-            if (window.comicAudio) window.comicAudio.playWhoosh();
-          } catch (e) {}
-
-          // Fade out loading screen overlay as he plunges downward, transitioning straight into the TASM 2 skydive!
-          setTimeout(() => {
-            if (overlay) {
-              overlay.classList.add('loader-fade-out');
-            }
-
-            // Reveal crawler element and trigger TASM 2 skydive entrance!
-            if (this.crawlerEl) {
-              this.crawlerEl.style.opacity = '1';
-            }
-            this.playTASM2DiveEntrance();
-
-            // Clean up overlay DOM node after transition
-            setTimeout(() => {
-              if (overlay && overlay.parentNode) {
-                overlay.parentNode.removeChild(overlay);
-              }
-            }, 450);
-          }, 200);
-        }, 90);
-      }
-    };
-
-    requestAnimationFrame(step);
+    this.playTASM2DiveEntrance();
   }
 
   setupDOM() {
@@ -317,7 +186,6 @@ class SpiderManController {
     const hangImg = document.getElementById('spidey-hang-img');
     const standImg = document.getElementById('spidey-stand-img');
     const diveImg = document.getElementById('spidey-dive-img');
-    const runnerImg = document.getElementById('loader-runner-img');
     if (hangImg) {
       hangImg.src = isVintage ? 'spiderman-hanging-vintage.png' : 'spiderman-hanging.png';
     }
@@ -326,9 +194,6 @@ class SpiderManController {
     }
     if (diveImg) {
       diveImg.src = isVintage ? 'spiderman-diving-back-vintage.png' : 'spiderman-diving-back.png';
-    }
-    if (runnerImg) {
-      runnerImg.src = isVintage ? 'spiderman-running-vintage.png' : 'spiderman-running.png';
     }
   }
 
